@@ -1,0 +1,2049 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QCM — Contrôleurs Laravel</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --red: #C0392B;
+    --red-dark: #922B21;
+    --red-light: #E74C3C;
+    --cream: #FDF6EC;
+    --dark: #1A0A05;
+    --mid: #3D1A10;
+    --gray: #8C7B74;
+    --border: #E8D5CC;
+    --green: #1E8449;
+    --orange: #D35400;
+    --code-bg: #1A0A05;
+    --correct: #1A5C2A;
+    --wrong: #7B1A1A;
+    --neutral: #2C1810;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--dark);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--dark);
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 20px,
+      rgba(192,57,43,0.07) 20px,
+      rgba(192,57,43,0.07) 21px
+    );
+  }
+
+  .header-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 32px 36px;
+    position: relative;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--red);
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 2px;
+    margin-bottom: 16px;
+  }
+
+  .badge::before { content: '▶'; font-size: 9px; }
+
+  header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(42px, 7vw, 72px);
+    color: #fff;
+    letter-spacing: 2px;
+    line-height: 0.95;
+    margin-bottom: 10px;
+  }
+
+  header h1 span { color: var(--red-light); }
+
+  .header-sub {
+    color: var(--gray);
+    font-size: 14px;
+    font-weight: 300;
+    letter-spacing: 0.5px;
+  }
+
+  .header-meta {
+    position: absolute;
+    top: 40px; right: 32px;
+    text-align: right;
+  }
+
+  .header-meta p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--gray);
+    line-height: 1.8;
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress-wrap {
+    background: var(--mid);
+    height: 6px;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--red), var(--red-light));
+    width: 0%;
+    transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 48px 32px 80px;
+  }
+
+  /* ── SCORE BOARD (top) ── */
+  .scoreboard {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    background: var(--dark);
+    border-radius: 4px;
+    padding: 20px 28px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+  }
+
+  .score-ring {
+    width: 72px;
+    height: 72px;
+    flex-shrink: 0;
+  }
+
+  .score-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+
+  .score-ring circle {
+    fill: none;
+    stroke-width: 6;
+    stroke-linecap: round;
+  }
+
+  .ring-bg { stroke: var(--mid); }
+
+  .ring-fill {
+    stroke: var(--red-light);
+    stroke-dasharray: 188;
+    stroke-dashoffset: 188;
+    transition: stroke-dashoffset 0.6s cubic-bezier(0.4,0,0.2,1), stroke 0.3s;
+  }
+
+  .score-info { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+
+  .score-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--gray);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .score-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 38px;
+    color: #fff;
+    line-height: 1;
+    letter-spacing: 1px;
+  }
+
+  .score-value span {
+    font-size: 18px;
+    color: var(--gray);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+  }
+
+  .score-pct {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--red-light);
+    letter-spacing: 1px;
+    margin-left: auto;
+    text-align: right;
+  }
+
+  .score-pct small {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--gray);
+    letter-spacing: 1px;
+    font-weight: 400;
+  }
+
+  /* ── QUESTION CARD ── */
+  .q-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 28px;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+    animation: slideUp 0.35s ease both;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .q-card:hover { box-shadow: 0 4px 24px rgba(192,57,43,0.08); }
+
+  .q-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 22px 24px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .q-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--red);
+    line-height: 1;
+    flex-shrink: 0;
+    min-width: 32px;
+  }
+
+  .q-text {
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.55;
+    color: var(--dark);
+    flex: 1;
+  }
+
+  .q-category {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--gray);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    padding-top: 4px;
+  }
+
+  /* code inline */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    background: #F5ECE8;
+    color: var(--red-dark);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.88em;
+  }
+
+  /* ── OPTIONS ── */
+  .q-options {
+    padding: 16px 24px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+    user-select: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .option::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--red);
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .option:hover { border-color: var(--red); transform: translateX(3px); }
+  .option:hover::before { opacity: 0.03; }
+
+  .option.selected { border-color: var(--red); background: #FEF0EE; }
+
+  .option.correct {
+    border-color: var(--green) !important;
+    background: #EAF7EE !important;
+  }
+
+  .option.wrong {
+    border-color: var(--red-dark) !important;
+    background: #FEEEEE !important;
+  }
+
+  .option-letter {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px;
+    color: var(--mid);
+    flex-shrink: 0;
+    transition: background 0.15s, color 0.15s;
+    position: relative;
+  }
+
+  .option.selected .option-letter { background: var(--red); color: #fff; }
+  .option.correct .option-letter { background: var(--green); color: #fff; }
+  .option.wrong .option-letter { background: var(--red-dark); color: #fff; }
+
+  .option-text {
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--dark);
+    position: relative;
+  }
+
+  .icon-result {
+    margin-left: auto;
+    font-size: 16px;
+    flex-shrink: 0;
+    position: relative;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .option.correct .icon-result,
+  .option.wrong .icon-result { opacity: 1; }
+
+  /* ── EXPLANATION ── */
+  .explanation {
+    margin: 0 24px 16px;
+    padding: 12px 16px;
+    background: #F5F5F5;
+    border-left: 3px solid var(--green);
+    border-radius: 0 4px 4px 0;
+    font-size: 13px;
+    color: var(--mid);
+    line-height: 1.55;
+    display: none;
+  }
+
+  .explanation.show { display: block; animation: fadeIn 0.3s ease; }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .explanation strong { color: var(--green); font-weight: 600; }
+
+  /* ── RESULTS CARD ── */
+  .results-card {
+    display: none;
+    background: var(--dark);
+    border-radius: 6px;
+    padding: 40px;
+    text-align: center;
+    margin-top: 40px;
+    animation: slideUp 0.5s ease both;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .results-card::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(192,57,43,0.3), transparent 70%);
+  }
+
+  .results-card.show { display: block; }
+
+  .results-trophy {
+    font-size: 48px;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .results-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    color: #fff;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+
+  .results-sub {
+    font-size: 14px;
+    color: var(--gray);
+    margin-bottom: 32px;
+  }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .results-stat {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 4px;
+    padding: 20px 12px;
+  }
+
+  .results-stat .n {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .results-stat .lbl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--gray);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .n.green { color: #2ECC71; }
+  .n.red { color: var(--red-light); }
+  .n.white { color: #fff; }
+
+  /* mention */
+  .mention-badge {
+    display: inline-block;
+    padding: 8px 24px;
+    border-radius: 100px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 2px;
+    margin-bottom: 28px;
+  }
+
+  .mention-excellent { background: #1E8449; color: #fff; }
+  .mention-bien { background: #1A5276; color: #fff; }
+  .mention-passable { background: #7D6608; color: #fff; }
+  .mention-insuffisant { background: #922B21; color: #fff; }
+
+  /* big percentage */
+  .big-pct {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 80px;
+    color: #fff;
+    letter-spacing: -2px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  /* bar chart */
+  .bar-chart {
+    margin: 24px 0 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 4px;
+    height: 48px;
+  }
+
+  .bar-seg {
+    flex: 1;
+    border-radius: 2px 2px 0 0;
+    transition: height 0.6s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .fab:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+  }
+
+  /* ── TIMER ── */
+  .timer-bar-wrap {
+    background: var(--dark);
+    height: 3px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .timer-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #2ECC71, #F39C12, #E74C3C);
+    width: 100%;
+    transition: width 1s linear;
+    transform-origin: left;
+  }
+
+  /* ── CATEGORY CHART ── */
+  .cat-chart {
+    padding: 20px 28px 24px;
+    border-top: 1px solid var(--border);
+    background: #fff;
+  }
+
+  .cat-chart-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gray);
+    margin-bottom: 16px;
+  }
+
+  .cat-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .cat-label {
+    font-size: 12px;
+    color: var(--mid);
+    width: 100px;
+    flex-shrink: 0;
+    font-weight: 500;
+  }
+
+  .cat-bar-bg {
+    flex: 1;
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .cat-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: var(--red);
+    transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .cat-pct {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--gray);
+    width: 36px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* ── PRINT BULLETIN ── */
+  .btn-print {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 36px;
+    background: transparent;
+    color: #fff;
+    border: 1.5px solid rgba(255,255,255,0.3);
+    border-radius: 3px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    margin-top: 12px;
+  }
+
+  .btn-print:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.5); }
+
+  /* ── CHRONO DISPLAY ── */
+  .chrono {
+    position: absolute;
+    top: 40px;
+    right: 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--gray);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+
+  .chrono-time {
+    font-size: 22px;
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: 2px;
+  }
+
+  .chrono-label {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  /* ── INPUT VALIDATION ERROR ── */
+  .field-error {
+    font-size: 11px;
+    color: var(--red);
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 3px;
+    display: none;
+  }
+
+  .field-group.error input { border-color: var(--red) !important; background: #FEF0EE; }
+  .field-group.error .field-error { display: block; }
+
+  /* ── DETAIL MODAL TAB ── */
+  .tab-bar {
+    display: flex;
+    border-bottom: 2px solid var(--border);
+    background: #fff;
+    flex-shrink: 0;
+  }
+
+  .tab-btn {
+    padding: 12px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--gray);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .tab-btn.active { color: var(--red); border-bottom-color: var(--red); }
+  .tab-btn:hover { color: var(--dark); }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  @media print {
+    .fab-bar, header, .progress-wrap, .student-form, .scoreboard,
+    #quizContainer, .btn-submit, .section-label, .modal-overlay { display: none !important; }
+    .results-card { display: block !important; background: #fff !important; color: #000 !important; box-shadow: none !important; border: 2px solid #333; }
+    .results-card * { color: #000 !important; }
+    .big-pct { font-size: 60px !important; }
+    body { background: #fff !important; }
+    main { padding: 0 !important; }
+    .results-student, .results-trophy { display: block !important; }
+  }
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 40px auto 0;
+    padding: 16px 48px;
+    background: var(--red);
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+    box-shadow: 0 4px 20px rgba(192,57,43,0.3);
+  }
+
+  .btn-submit:hover { background: var(--red-dark); transform: translateY(-2px); box-shadow: 0 6px 28px rgba(192,57,43,0.4); }
+  .btn-submit:active { transform: translateY(0); }
+  .btn-submit:disabled { background: var(--gray); box-shadow: none; cursor: not-allowed; transform: none; }
+
+  .btn-restart {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 36px;
+    background: transparent;
+    color: #fff;
+    border: 1.5px solid rgba(255,255,255,0.3);
+    border-radius: 3px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    margin-top: 12px;
+  }
+
+  .btn-restart:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.5); }
+
+  /* ── SECTION DIVIDER ── */
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 40px 0 20px;
+  }
+
+  .section-label span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--gray);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── STUDENT FORM ── */
+  .student-form {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 28px 32px;
+    margin-bottom: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .student-form::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px; height: 100%;
+    background: linear-gradient(180deg, var(--red), var(--red-light));
+  }
+
+  .student-form-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gray);
+    margin-bottom: 2px;
+  }
+
+  .student-form-title::before {
+    content: '👤';
+    font-size: 14px;
+  }
+
+  .student-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .field-group label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--gray);
+  }
+
+  .field-group input {
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    padding: 11px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--dark);
+    background: var(--cream);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  }
+
+  .field-group input:focus {
+    border-color: var(--red);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(192,57,43,0.08);
+  }
+
+  .field-group input::placeholder { color: #C0ACA8; font-weight: 300; }
+
+  .field-group input.filled { border-color: var(--green); background: #f6fbf7; }
+
+  .student-display {
+    display: none;
+    align-items: center;
+    gap: 14px;
+    background: var(--dark);
+    border-radius: 4px;
+    padding: 14px 20px;
+    margin-bottom: 0;
+  }
+
+  .student-display.visible { display: flex; }
+
+  .student-avatar {
+    width: 40px; height: 40px;
+    background: var(--red);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    color: #fff;
+    flex-shrink: 0;
+    letter-spacing: 1px;
+  }
+
+  .student-name-display {
+    flex: 1;
+  }
+
+  .student-name-display strong {
+    display: block;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    color: #fff;
+    letter-spacing: 1px;
+    line-height: 1.1;
+  }
+
+  .student-name-display small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--gray);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .results-student {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    color: rgba(255,255,255,0.6);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+
+  /* ── RESPONSIVE ── */
+  /* ── FLOATING ACTION BAR ── */
+  .fab-bar {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 100;
+  }
+
+  .fab {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 20px;
+    border-radius: 50px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 15px;
+    letter-spacing: 1.5px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    transition: transform 0.15s, box-shadow 0.15s;
+    white-space: nowrap;
+  }
+
+  .fab:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(0,0,0,0.32); }
+  .fab:active { transform: translateY(0); }
+
+  .fab-excel {
+    background: #1D6F42;
+    color: #fff;
+  }
+
+  .fab-view {
+    background: #1A5276;
+    color: #fff;
+  }
+
+  .fab-icon { font-size: 18px; }
+
+  /* ── MODAL OVERLAY ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10,4,2,0.75);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+
+  .modal {
+    background: var(--cream);
+    border-radius: 8px;
+    width: 100%;
+    max-width: 860px;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+    animation: slideUp 0.25s ease both;
+  }
+
+  .modal-header {
+    background: var(--dark);
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: #fff;
+    letter-spacing: 2px;
+    flex: 1;
+  }
+
+  .modal-subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--gray);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    display: block;
+    margin-top: 2px;
+  }
+
+  .modal-close {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,0.2);
+    background: transparent;
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+
+  .modal-close:hover { background: rgba(255,255,255,0.1); }
+
+  .modal-toolbar {
+    padding: 14px 28px;
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+
+  .modal-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--gray);
+    flex: 1;
+  }
+
+  .modal-count strong { color: var(--dark); }
+
+  .btn-export-modal {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 18px;
+    background: #1D6F42;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .btn-export-modal:hover { background: #145a34; }
+
+  .btn-clear-results {
+    display: flex; align-items: center; gap: 6px;
+    padding: 9px 16px;
+    background: transparent;
+    color: var(--red);
+    border: 1.5px solid var(--red);
+    border-radius: 4px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .btn-clear-results:hover { background: var(--red); color: #fff; }
+
+  .modal-body {
+    overflow-y: auto;
+    flex: 1;
+    padding: 0;
+  }
+
+  /* Results table */
+  .results-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .results-table th {
+    background: var(--dark);
+    color: rgba(255,255,255,0.7);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 11px 16px;
+    text-align: left;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  .results-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  .results-table tr:hover td { background: #FEF8F5; }
+
+  .results-table tr:last-child td { border-bottom: none; }
+
+  .td-name { font-weight: 600; color: var(--dark); }
+  .td-date { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--gray); }
+
+  .td-score { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--dark); }
+
+  .td-pct {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .pct-green { color: #1E8449; }
+  .pct-blue { color: #1A5276; }
+  .pct-orange { color: #D35400; }
+  .pct-red { color: var(--red-dark); }
+
+  .mention-pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .pill-green { background: #D5F5E3; color: #1E8449; }
+  .pill-blue { background: #D6EAF8; color: #1A5276; }
+  .pill-orange { background: #FDEBD0; color: #D35400; }
+  .pill-red { background: #FADBD8; color: #922B21; }
+
+  .no-results {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--gray);
+  }
+
+  .no-results .icon { font-size: 40px; display: block; margin-bottom: 12px; }
+  .no-results p { font-size: 14px; line-height: 1.6; }
+
+  /* Rank badge */
+  .rank {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--border);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    color: var(--mid);
+  }
+
+  .rank-1 { background: #F9E537; color: #7D6608; }
+  .rank-2 { background: #D5D8DC; color: #626567; }
+  .rank-3 { background: #D4936A; color: #784212; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--dark);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 1px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 500;
+    white-space: nowrap;
+  }
+
+  .toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 640px) {
+    .fab-bar { bottom: 16px; right: 16px; }
+    .fab span.fab-label { display: none; }
+    .fab { padding: 13px; }
+    .modal { max-height: 92vh; }
+    .modal-header { padding: 16px 20px; }
+    .modal-toolbar { padding: 12px 16px; }
+    .results-table th, .results-table td { padding: 10px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="badge">Séance 15 — 07/04/2026</div>
+    <h1>QCM <span>Contrôleurs</span><br>Laravel</h1>
+    <p class="header-sub">Groupe DEVOWFS201 · Formateur : NASSIRI ILYAS</p>
+    <div class="chrono" id="chronoDisplay">
+      <span class="chrono-label">Durée</span>
+      <span class="chrono-time" id="chronoTime">00:00</span>
+      <p style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray)">Framework PHP</p>
+      <p style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray)">15 questions</p>
+    </div>
+  </div>
+</header>
+<div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+<main>
+
+  <!-- Student Info -->
+  <div class="student-form" id="studentForm">
+    <div class="student-form-title">Informations du stagiaire <span style="color:var(--red);font-size:13px;margin-left:4px;">*</span></div>
+    <div class="student-fields">
+      <div class="field-group" id="fgNom">
+        <label for="inputNom">Nom <span style="color:var(--red)">*</span></label>
+        <input type="text" id="inputNom" placeholder="Votre nom" autocomplete="family-name" oninput="onStudentInput()">
+        <span class="field-error" id="errNom">Le nom est requis avant de valider.</span>
+      </div>
+      <div class="field-group" id="fgPrenom">
+        <label for="inputPrenom">Prénom <span style="color:var(--red)">*</span></label>
+        <input type="text" id="inputPrenom" placeholder="Votre prénom" autocomplete="given-name" oninput="onStudentInput()">
+        <span class="field-error" id="errPrenom">Le prénom est requis avant de valider.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Student display chip (shown in scoreboard after fill) -->
+
+  <!-- Scoreboard -->
+  <div class="scoreboard" id="scoreboard">
+    <div class="score-ring">
+      <svg viewBox="0 0 64 64">
+        <circle class="ring-bg" cx="32" cy="32" r="30"/>
+        <circle class="ring-fill" id="ringFill" cx="32" cy="32" r="30"/>
+      </svg>
+    </div>
+    <div class="score-info">
+      <div class="score-label" id="scoreLabel">Score en cours</div>
+      <div class="score-value" id="scoreVal">0 <span>/ 15</span></div>
+      <div class="student-display" id="studentDisplay">
+        <div class="student-avatar" id="studentAvatar">??</div>
+        <div class="student-name-display">
+          <strong id="studentFullName">—</strong>
+          <small>DEVOWFS201</small>
+        </div>
+      </div>
+    </div>
+    <div class="score-pct">
+      <span id="scorePct">0%</span>
+      <small>POURCENTAGE</small>
+    </div>
+  </div>
+
+  <!-- Questions -->
+  <div id="quizContainer"></div>
+
+  <!-- Submit -->
+  <button class="btn-submit" id="btnSubmit" onclick="submitQuiz()">
+    ⚡ VALIDER LE QCM
+  </button>
+
+  <!-- Results -->
+  <div class="results-card" id="resultsCard">
+    <span class="results-trophy" id="trophy">🏆</span>
+    <div class="results-student" id="resultsStudentName"></div>
+    <div class="big-pct" id="bigPct">0%</div>
+    <div class="mention-badge" id="mentionBadge">—</div>
+    <p class="results-sub" id="resultsSub">Résultat final</p>
+    <div class="results-grid">
+      <div class="results-stat">
+        <div class="n green" id="rCorrect">0</div>
+        <div class="lbl">Correctes</div>
+      </div>
+      <div class="results-stat">
+        <div class="n red" id="rWrong">0</div>
+        <div class="lbl">Incorrectes</div>
+      </div>
+      <div class="results-stat">
+        <div class="n white" id="rTotal">15</div>
+        <div class="lbl">Total</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:12px;">
+      <button class="btn-restart" onclick="restartQuiz()">↺ RECOMMENCER</button>
+      <button class="btn-print" onclick="printBulletin()">🖨 IMPRIMER LE BULLETIN</button>
+      <button class="btn-restart" style="background:rgba(29,111,66,0.15);border-color:#2ECC71;color:#2ECC71;" onclick="exportToExcel()">📥 TÉLÉCHARGER EXCEL</button>
+    </div>
+
+    <!-- Category performance chart -->
+    <div class="cat-chart" id="catChart" style="margin-top:24px;border-radius:0 0 6px 6px;"></div>
+
+    <!-- Time taken -->
+    <div style="margin-top:16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:rgba(255,255,255,0.4);letter-spacing:1px;">
+      ⏱ Durée : <span id="timeTaken">—</span>
+    </div>
+  </div>
+
+</main>
+
+<!-- Floating Action Bar -->
+<div class="fab-bar">
+  <button class="fab fab-view" onclick="openModal()">
+    <span class="fab-icon">📊</span>
+    <span class="fab-label">AFFICHER LES RÉSULTATS</span>
+  </button>
+  <button class="fab fab-excel" onclick="exportToExcel()" id="fabExcel" disabled title="Validez le QCM d'abord">
+    <span class="fab-icon">⬇</span>
+    <span class="fab-label">EXPORTER EXCEL</span>
+  </button>
+</div>
+
+<!-- Results Viewer Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">📊 Tableau des Résultats</div>
+        <span class="modal-subtitle">DEVOWFS201 · Séance 15 · Contrôleurs Laravel</span>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-toolbar">
+      <div class="modal-count" id="modalCount"><strong>0</strong> résultat(s) enregistré(s)</div>
+      <button class="btn-export-modal" onclick="exportToExcel()">📥 Exporter Excel</button>
+      <button class="btn-clear-results" onclick="clearAllResults()">🗑 Effacer tout</button>
+    </div>
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('tab-list', this)">📋 CLASSEMENT</button>
+      <button class="tab-btn" onclick="switchTab('tab-stats', this)">📈 STATISTIQUES</button>
+    </div>
+    <div class="modal-body">
+      <!-- Tab: List -->
+      <div class="tab-panel active" id="tab-list">
+        <table class="results-table" id="resultsTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nom complet</th>
+              <th>Score</th>
+              <th>Pourcentage</th>
+              <th>Mention</th>
+              <th>Date &amp; Heure</th>
+            </tr>
+          </thead>
+          <tbody id="resultsTableBody"></tbody>
+        </table>
+        <div class="no-results" id="noResults" style="display:none">
+          <span class="icon">📭</span>
+          <p>Aucun résultat enregistré.<br>Complétez un QCM pour voir les résultats ici.</p>
+        </div>
+      </div>
+      <!-- Tab: Stats -->
+      <div class="tab-panel" id="tab-stats">
+        <div id="statsPanel" style="padding:28px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'qcm_laravel_results';
+
+// ── CHRONO ──
+let chronoInterval = null;
+let chronoSeconds = 0;
+let quizStartTime = null;
+
+function startChrono() {
+  chronoSeconds = 0;
+  quizStartTime = Date.now();
+  clearInterval(chronoInterval);
+  chronoInterval = setInterval(() => {
+    chronoSeconds++;
+    const m = String(Math.floor(chronoSeconds / 60)).padStart(2, '0');
+    const s = String(chronoSeconds % 60).padStart(2, '0');
+    document.getElementById('chronoTime').textContent = `${m}:${s}`;
+  }, 1000);
+}
+
+function stopChrono() {
+  clearInterval(chronoInterval);
+  const m = String(Math.floor(chronoSeconds / 60)).padStart(2, '0');
+  const s = String(chronoSeconds % 60).padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+const questions = [
+  {
+    category: "Concept",
+    text: "Quel est l'intérêt principal d'un contrôleur dans Laravel ?",
+    options: [
+      "Gérer la connexion à la base de données directement",
+      "Organiser la logique de gestion des requêtes dans des classes au lieu de fermetures dans les routes",
+      "Remplacer complètement le système de routage",
+      "Générer automatiquement les vues Blade"
+    ],
+    answer: 1,
+    explanation: "Les contrôleurs permettent de regrouper la logique de gestion des requêtes dans une seule classe, plutôt que de tout définir dans les fichiers de routage."
+  },
+  {
+    category: "Artisan",
+    text: "Quelle commande Artisan permet de créer un nouveau contrôleur <code>UserController</code> ?",
+    options: [
+      "<code>php artisan create:controller UserController</code>",
+      "<code>php artisan generate:controller UserController</code>",
+      "<code>php artisan make:controller UserController</code>",
+      "<code>php artisan new:controller UserController</code>"
+    ],
+    answer: 2,
+    explanation: "La commande correcte est <strong>php artisan make:controller UserController</strong>. Elle génère le fichier dans app/Http/Controllers/."
+  },
+  {
+    category: "Structure",
+    text: "Par défaut, dans quel répertoire sont stockés les contrôleurs Laravel ?",
+    options: [
+      "<code>app/Controllers</code>",
+      "<code>resources/Controllers</code>",
+      "<code>app/Http/Controllers</code>",
+      "<code>routes/Controllers</code>"
+    ],
+    answer: 2,
+    explanation: "Par défaut, les contrôleurs sont stockés dans <strong>app/Http/Controllers</strong>."
+  },
+  {
+    category: "Routage",
+    text: "Comment associer la méthode <code>show</code> du <code>UserController</code> à une route GET ?",
+    options: [
+      "<code>Route::get('/user/{id}', 'UserController@show');</code>",
+      "<code>Route::get('/user/{id}', [UserController::class, 'show']);</code>",
+      "<code>Route::show('/user/{id}', UserController::class);</code>",
+      "<code>Route::get('/user', UserController::show);</code>"
+    ],
+    answer: 1,
+    explanation: "La syntaxe moderne Laravel utilise un tableau : <strong>[UserController::class, 'show']</strong>."
+  },
+  {
+    category: "Simple Action",
+    text: "Quelle méthode spéciale doit contenir un contrôleur à simple action (invokable) ?",
+    options: [
+      "<code>__handle()</code>",
+      "<code>__call()</code>",
+      "<code>__invoke()</code>",
+      "<code>__run()</code>"
+    ],
+    answer: 2,
+    explanation: "Un contrôleur invokable définit une seule méthode <strong>__invoke()</strong> pour gérer une action unique complexe."
+  },
+  {
+    category: "Artisan",
+    text: "Quelle option Artisan génère un contrôleur invokable ?",
+    options: [
+      "<code>--single</code>",
+      "<code>--action</code>",
+      "<code>--invokable</code>",
+      "<code>--invoke</code>"
+    ],
+    answer: 2,
+    explanation: "La commande est <strong>php artisan make:controller NomController --invokable</strong>."
+  },
+  {
+    category: "Middleware",
+    text: "Comment affecter un middleware <code>auth</code> à une route de contrôleur dans le fichier de routes ?",
+    options: [
+      "<code>Route::get('profile', UserController::class)->auth();</code>",
+      "<code>Route::get('profile', [UserController::class, 'show'])->middleware('auth');</code>",
+      "<code>Route::middleware('auth')->get('profile', UserController::class);</code>",
+      "Les deux options B et C sont correctes"
+    ],
+    answer: 3,
+    explanation: "On peut chaîner <strong>->middleware('auth')</strong> sur la route, ou utiliser le groupe <strong>Route::middleware()->group()</strong>. Les options B et C sont toutes les deux valides."
+  },
+  {
+    category: "Ressources",
+    text: "Quelle commande crée un contrôleur de ressources complet (CRUD) pour <code>PhotoController</code> ?",
+    options: [
+      "<code>php artisan make:controller PhotoController --crud</code>",
+      "<code>php artisan make:controller PhotoController --resource</code>",
+      "<code>php artisan make:controller PhotoController --rest</code>",
+      "<code>php artisan make:controller PhotoController --full</code>"
+    ],
+    answer: 1,
+    explanation: "L'option <strong>--resource</strong> génère un contrôleur avec toutes les méthodes CRUD : index, create, store, show, edit, update, destroy."
+  },
+  {
+    category: "Ressources",
+    text: "Combien de routes sont créées par <code>Route::resource('photos', PhotoController::class)</code> ?",
+    options: [
+      "4",
+      "5",
+      "6",
+      "7"
+    ],
+    answer: 3,
+    explanation: "Route::resource crée <strong>7 routes</strong> : index, create, store, show, edit, update, destroy."
+  },
+  {
+    category: "Ressources",
+    text: "Quel verbe HTTP et quelle action correspondent à l'URI <code>/photos/{photo}</code> pour la suppression ?",
+    options: [
+      "GET — destroy",
+      "POST — delete",
+      "DELETE — destroy",
+      "PUT — remove"
+    ],
+    answer: 2,
+    explanation: "La suppression utilise le verbe <strong>DELETE</strong> sur <strong>/photos/{photo}</strong>, appelant l'action <strong>destroy</strong>."
+  },
+  {
+    category: "API",
+    text: "Quelle méthode exclut automatiquement les routes <code>create</code> et <code>edit</code> pour une API ?",
+    options: [
+      "<code>Route::resource()->api()</code>",
+      "<code>Route::apiResource('photos', PhotoController::class)</code>",
+      "<code>Route::resource()->except(['create','edit'])</code>",
+      "Les deux B et C sont équivalents"
+    ],
+    answer: 3,
+    explanation: "<strong>Route::apiResource()</strong> exclut create et edit automatiquement. L'option C avec ->except() produit le même résultat. Les deux sont donc valides."
+  },
+  {
+    category: "Injection",
+    text: "Qu'est-ce que l'injection de constructeur dans un contrôleur Laravel ?",
+    options: [
+      "Injecter du HTML dans le constructeur",
+      "Déclarer les dépendances dans le constructeur pour qu'elles soient automatiquement résolues par le conteneur de service",
+      "Appeler une méthode externe au démarrage du contrôleur",
+      "Injecter des valeurs de configuration dans chaque méthode"
+    ],
+    answer: 1,
+    explanation: "Le conteneur de service Laravel résout automatiquement les dépendances déclarées dans le constructeur du contrôleur."
+  },
+  {
+    category: "Ressources imbriquées",
+    text: "Quelle syntaxe de route crée une ressource imbriquée photos → commentaires ?",
+    options: [
+      "<code>Route::resource('photos/comments', PhotoCommentController::class)</code>",
+      "<code>Route::resource('photos->comments', PhotoCommentController::class)</code>",
+      "<code>Route::resource('photos.comments', PhotoCommentController::class)</code>",
+      "<code>Route::nestedResource('photos', 'comments', Controller::class)</code>"
+    ],
+    answer: 2,
+    explanation: "Laravel utilise la <strong>notation point</strong> pour les ressources imbriquées : <strong>'photos.comments'</strong>."
+  },
+  {
+    category: "Routes partielles",
+    text: "Comment limiter un contrôleur de ressources aux seules actions <code>index</code> et <code>show</code> ?",
+    options: [
+      "<code>Route::resource('photos', PhotoController::class)->limit(['index','show'])</code>",
+      "<code>Route::resource('photos', PhotoController::class)->only(['index','show'])</code>",
+      "<code>Route::resource('photos', PhotoController::class)->filter(['index','show'])</code>",
+      "<code>Route::resource('photos', PhotoController::class)->restrict(['index','show'])</code>"
+    ],
+    answer: 1,
+    explanation: "La méthode <strong>->only(['index', 'show'])</strong> limite les routes aux actions spécifiées."
+  },
+  {
+    category: "Injection méthode",
+    text: "Si une méthode de contrôleur reçoit <code>Request $request</code> ET un paramètre de route <code>$id</code>, quel ordre utiliser ?",
+    options: [
+      "<code>function update($id, Request $request)</code>",
+      "<code>function update(Request $request, $id)</code>",
+      "L'ordre n'a aucune importance dans Laravel",
+      "<code>function update(Request $request) use ($id)</code>"
+    ],
+    answer: 1,
+    explanation: "Les paramètres de route sont listés <strong>après</strong> les dépendances injectées. La signature correcte est <strong>update(Request $request, $id)</strong>."
+  }
+];
+
+let answered = [];
+let submitted = false;
+
+function renderQuiz() {
+  const container = document.getElementById('quizContainer');
+  container.innerHTML = '';
+  answered = new Array(questions.length).fill(null);
+  startChrono();
+
+  questions.forEach((q, qi) => {
+    // Section label every 5 questions
+    if (qi % 5 === 0) {
+      const sec = document.createElement('div');
+      sec.className = 'section-label';
+      sec.innerHTML = `<span>Section ${Math.floor(qi/5)+1}</span>`;
+      container.appendChild(sec);
+    }
+
+    const card = document.createElement('div');
+    card.className = 'q-card';
+    card.style.animationDelay = `${qi * 0.04}s`;
+
+    const opts = q.options.map((o, oi) => `
+      <div class="option" id="opt-${qi}-${oi}" onclick="selectOption(${qi},${oi})">
+        <div class="option-letter">${String.fromCharCode(65+oi)}</div>
+        <div class="option-text">${o}</div>
+        <span class="icon-result"></span>
+      </div>
+    `).join('');
+
+    card.innerHTML = `
+      <div class="q-header">
+        <div class="q-num">${String(qi+1).padStart(2,'0')}</div>
+        <div class="q-text">${q.text}</div>
+        <div class="q-category">${q.category}</div>
+      </div>
+      <div class="q-options">${opts}</div>
+      <div class="explanation" id="exp-${qi}">💡 ${q.explanation}</div>
+    `;
+    container.appendChild(card);
+  });
+
+  updateScore();
+  updateProgress();
+}
+
+function selectOption(qi, oi) {
+  if (submitted) return;
+  if (answered[qi] === oi) { answered[qi] = null; }
+  else { answered[qi] = oi; }
+
+  // Update UI for this question
+  for (let i = 0; i < questions[qi].options.length; i++) {
+    const el = document.getElementById(`opt-${qi}-${i}`);
+    el.classList.toggle('selected', answered[qi] === i);
+  }
+  updateScore();
+  updateProgress();
+}
+
+function updateScore() {
+  const answered_count = answered.filter(a => a !== null).length;
+  document.getElementById('progressBar').style.width = `${(answered_count/questions.length)*100}%`;
+}
+
+function updateProgress() {
+  // just visual feedback — score shown after submit
+}
+
+function submitQuiz() {
+  // Validate student name
+  const nom = document.getElementById('inputNom').value.trim();
+  const prenom = document.getElementById('inputPrenom').value.trim();
+  let hasError = false;
+
+  document.getElementById('fgNom').classList.toggle('error', !nom);
+  document.getElementById('fgPrenom').classList.toggle('error', !prenom);
+  if (!nom || !prenom) {
+    hasError = true;
+    document.getElementById('studentForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    showToast('⚠️ Veuillez saisir votre nom et prénom avant de valider.');
+    return;
+  }
+
+  const unanswered = answered.filter(a => a === null).length;
+  if (unanswered > 0) {
+    const msg = unanswered === 1
+      ? `Il reste 1 question sans réponse. Voulez-vous quand même valider ?`
+      : `Il reste ${unanswered} questions sans réponse. Voulez-vous quand même valider ?`;
+    if (!confirm(msg)) return;
+  }
+
+  submitted = true;
+  document.getElementById('btnSubmit').disabled = true;
+  const duration = stopChrono();
+
+  let correct = 0;
+  questions.forEach((q, qi) => {
+    const sel = answered[qi];
+    for (let oi = 0; oi < q.options.length; oi++) {
+      const el = document.getElementById(`opt-${qi}-${oi}`);
+      el.classList.remove('selected');
+      if (oi === q.answer) {
+        el.classList.add('correct');
+        el.querySelector('.icon-result').textContent = '✓';
+      } else if (sel === oi) {
+        el.classList.add('wrong');
+        el.querySelector('.icon-result').textContent = '✗';
+      }
+    }
+    if (sel === q.answer) correct++;
+    // Show explanation
+    document.getElementById(`exp-${qi}`).classList.add('show');
+  });
+
+  const pct = Math.round((correct / questions.length) * 100);
+
+  // Update scoreboard
+  document.getElementById('scoreVal').innerHTML = `${correct} <span>/ ${questions.length}</span>`;
+  document.getElementById('scorePct').textContent = `${pct}%`;
+
+  // Animate ring
+  const circumference = 188;
+  const offset = circumference - (pct / 100) * circumference;
+  const ring = document.getElementById('ringFill');
+  ring.style.strokeDashoffset = offset;
+  if (pct >= 80) ring.style.stroke = '#2ECC71';
+  else if (pct >= 60) ring.style.stroke = '#F39C12';
+  else ring.style.stroke = '#E74C3C';
+
+  // Progress bar
+  document.getElementById('progressBar').style.width = '100%';
+
+  // Student name in results
+  const studentName = getStudentName();
+  document.getElementById('resultsStudentName').textContent = studentName.toUpperCase();
+
+  // Save to localStorage
+  const now = new Date();
+  const nomVal = document.getElementById('inputNom').value.trim();
+  const prenomVal = document.getElementById('inputPrenom').value.trim();
+  saveResult({
+    fullName: studentName,
+    nom: nomVal,
+    prenom: prenomVal,
+    correct,
+    total: questions.length,
+    pct,
+    duration,
+    date: now.toLocaleDateString('fr-FR'),
+    time: now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})
+  });
+
+  // Enable Excel FAB
+  document.getElementById('fabExcel').disabled = false;
+  document.getElementById('fabExcel').title = 'Télécharger les résultats en Excel';
+
+  // Show duration
+  document.getElementById('timeTaken').textContent = duration;
+
+  // Results card
+  const rc = document.getElementById('resultsCard');
+  rc.classList.add('show');
+
+  document.getElementById('bigPct').textContent = `${pct}%`;
+  document.getElementById('rCorrect').textContent = correct;
+  document.getElementById('rWrong').textContent = questions.length - correct;
+  document.getElementById('rTotal').textContent = questions.length;
+
+  let mention, trophy, sub;
+  if (pct >= 90)      { mention = 'TRÈS BIEN'; trophy = '🏆'; sub = 'Félicitations ! Maîtrise excellente des contrôleurs Laravel.'; }
+  else if (pct >= 75) { mention = 'BIEN'; trophy = '🎯'; sub = 'Bon travail ! Quelques points à revoir pour la perfection.'; }
+  else if (pct >= 60) { mention = 'PASSABLE'; trophy = '📚'; sub = 'Résultat acceptable. Relisez le cours sur les contrôleurs.'; }
+  else if (pct >= 50) { mention = 'INSUFFISANT'; trophy = '⚠️'; sub = 'Résultat insuffisant. Revoir la séance 15 est recommandé.'; }
+  else                { mention = 'TRÈS INSUFFISANT'; trophy = '❌'; sub = 'Il est nécessaire de revoir entièrement le cours.'; }
+
+  document.getElementById('trophy').textContent = trophy;
+  document.getElementById('mentionBadge').textContent = mention;
+  document.getElementById('resultsSub').textContent = sub;
+
+  const badge = document.getElementById('mentionBadge');
+  badge.className = 'mention-badge';
+  if (pct >= 75) badge.classList.add('mention-excellent');
+  else if (pct >= 60) badge.classList.add('mention-bien');
+  else if (pct >= 50) badge.classList.add('mention-passable');
+  else badge.classList.add('mention-insuffisant');
+
+  rc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // Render category performance chart
+  setTimeout(() => renderCategoryChart(answered), 400);
+
+  // Confetti if excellent
+  if (pct >= 75) setTimeout(() => launchConfetti(), 600);
+}
+
+function restartQuiz() {
+  submitted = false;
+  document.getElementById('btnSubmit').disabled = false;
+  document.getElementById('resultsCard').classList.remove('show');
+  document.getElementById('catChart').innerHTML = '';
+  document.getElementById('scoreVal').innerHTML = `0 <span>/ 15</span>`;
+  document.getElementById('scorePct').textContent = '0%';
+  document.getElementById('ringFill').style.strokeDashoffset = '188';
+  document.getElementById('ringFill').style.stroke = 'var(--red-light)';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  setTimeout(renderQuiz, 400);
+}
+
+// ── ON LOAD ──
+window.addEventListener('DOMContentLoaded', () => {
+  if (loadResults().length > 0) {
+    const fab = document.getElementById('fabExcel');
+    if (fab) { fab.disabled = false; fab.title = 'Télécharger les résultats en Excel'; }
+  }
+});
+
+// ── STORAGE ──
+
+function loadResults() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch { return []; }
+}
+
+function saveResult(entry) {
+  const results = loadResults();
+  results.push(entry);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(results));
+}
+
+// ── TOAST ──
+function showToast(msg, duration = 2800) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('visible');
+  setTimeout(() => t.classList.remove('visible'), duration);
+}
+
+// ── MENTION HELPER ──
+function getMention(pct) {
+  if (pct >= 90) return { label: 'TRÈS BIEN', pillClass: 'pill-green', pctClass: 'pct-green' };
+  if (pct >= 75) return { label: 'BIEN', pillClass: 'pill-blue', pctClass: 'pct-blue' };
+  if (pct >= 60) return { label: 'PASSABLE', pillClass: 'pill-orange', pctClass: 'pct-orange' };
+  if (pct >= 50) return { label: 'INSUFFISANT', pillClass: 'pill-red', pctClass: 'pct-red' };
+  return { label: 'TRÈS INSUFFISANT', pillClass: 'pill-red', pctClass: 'pct-red' };
+}
+
+// ── EXCEL EXPORT ──
+function exportToExcel() {
+  const results = loadResults();
+  if (results.length === 0) { showToast('⚠️ Aucun résultat à exporter !'); return; }
+
+  const wb = XLSX.utils.book_new();
+
+  // Sheet 1: Résultats
+  const h1 = [['#','Nom','Prénom','Nom Complet','Score','Total','Pourcentage (%)','Mention','Durée','Date','Heure','Groupe','Formateur','Matière']];
+  const r1 = results.map((r,i) => [i+1,r.nom||'',r.prenom||'',r.fullName,r.correct,r.total,r.pct,getMention(r.pct).label,r.duration||'—',r.date,r.time,'DEVOWFS201','NASSIRI ILYAS','Framework Laravel — Contrôleurs']);
+  const ws1 = XLSX.utils.aoa_to_sheet([...h1,...r1]);
+  ws1['!cols'] = [{wch:4},{wch:14},{wch:14},{wch:24},{wch:7},{wch:6},{wch:14},{wch:16},{wch:8},{wch:12},{wch:7},{wch:12},{wch:16},{wch:28}];
+  XLSX.utils.book_append_sheet(wb, ws1, 'Résultats');
+
+  // Sheet 2: Statistiques
+  const pcts = results.map(r => r.pct);
+  const avg = Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length);
+  const passed = pcts.filter(p=>p>=60).length;
+  const ws2 = XLSX.utils.aoa_to_sheet([
+    ['QCM Contrôleurs Laravel — Statistiques'],[''],
+    ['Métrique','Valeur'],
+    ['Stagiaires',results.length],['Moyenne (%)',avg],
+    ['Max (%)',Math.max(...pcts)],['Min (%)',Math.min(...pcts)],
+    ['Taux réussite',`${Math.round((passed/results.length)*100)}%`],
+    ['Reçus (≥60%)',passed],['Échoués (<60%)',results.length-passed],[''],
+    ['Séance','Séance 15 — 07/04/2026'],['Formateur','NASSIRI ILYAS'],
+    ['Groupe','DEVOWFS201'],['Matière','Framework Laravel — Contrôleurs'],
+  ]);
+  ws2['!cols'] = [{wch:26},{wch:20}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Statistiques');
+
+  // Sheet 3: Questions
+  const ws3 = XLSX.utils.aoa_to_sheet([
+    ['#','Catégorie','Question','Bonne Réponse'],
+    ...questions.map((q,i) => [i+1, q.category, q.text.replace(/<[^>]+>/g,''), q.options[q.answer].replace(/<[^>]+>/g,'')])
+  ]);
+  ws3['!cols'] = [{wch:4},{wch:14},{wch:58},{wch:46}];
+  XLSX.utils.book_append_sheet(wb, ws3, 'Questions');
+
+  XLSX.writeFile(wb, `QCM_Laravel_Controleurs_${new Date().toISOString().slice(0,10)}.xlsx`);
+  showToast('✅ Excel téléchargé — 3 feuilles : Résultats, Statistiques, Questions');
+}
+
+// ── MODAL ──
+function openModal() {
+  renderModalTable();
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function renderModalTable() {
+  const results = loadResults();
+  const tbody = document.getElementById('resultsTableBody');
+  const noRes = document.getElementById('noResults');
+  const table = document.getElementById('resultsTable');
+  const count = document.getElementById('modalCount');
+
+  count.innerHTML = `<strong>${results.length}</strong> résultat(s) enregistré(s)`;
+
+  if (results.length === 0) {
+    table.style.display = 'none';
+    noRes.style.display = 'block';
+    return;
+  }
+
+  table.style.display = 'table';
+  noRes.style.display = 'none';
+
+  // Sort by pct descending
+  const sorted = [...results].sort((a, b) => b.pct - a.pct);
+
+  tbody.innerHTML = sorted.map((r, i) => {
+    const m = getMention(r.pct);
+    const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
+    return `<tr>
+      <td><span class="rank ${rankClass}">${i+1}</span></td>
+      <td class="td-name">${r.fullName}</td>
+      <td class="td-score">${r.correct} <span style="color:var(--gray);font-size:13px;font-family:'DM Sans',sans-serif">/ ${r.total}</span></td>
+      <td class="td-pct ${m.pctClass}">${r.pct}%</td>
+      <td><span class="mention-pill ${m.pillClass}">${m.label}</span></td>
+      <td class="td-date">${r.date} ${r.time}</td>
+    </tr>`;
+  }).join('');
+}
+
+function clearAllResults() {
+  if (!confirm('Effacer tous les résultats enregistrés ?')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  renderModalTable();
+  showToast('🗑 Résultats effacés');
+}
+
+// Keyboard close
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ── STUDENT HELPERS ──
+function onStudentInput() {
+  const nom = document.getElementById('inputNom').value.trim();
+  const prenom = document.getElementById('inputPrenom').value.trim();
+  document.getElementById('inputNom').classList.toggle('filled', nom.length > 0);
+  document.getElementById('inputPrenom').classList.toggle('filled', prenom.length > 0);
+  document.getElementById('fgNom').classList.remove('error');
+  document.getElementById('fgPrenom').classList.remove('error');
+
+  const display = document.getElementById('studentDisplay');
+  const fullNameEl = document.getElementById('studentFullName');
+  const avatarEl = document.getElementById('studentAvatar');
+  if (nom || prenom) {
+    fullNameEl.textContent = [prenom, nom].filter(Boolean).join(' ').toUpperCase();
+    avatarEl.textContent = [prenom, nom].filter(Boolean).map(s => s[0].toUpperCase()).join('') || '?';
+    display.classList.add('visible');
+  } else {
+    display.classList.remove('visible');
+  }
+}
+
+function getStudentName() {
+  const nom = document.getElementById('inputNom').value.trim();
+  const prenom = document.getElementById('inputPrenom').value.trim();
+  return [prenom, nom].filter(Boolean).join(' ') || 'Stagiaire';
+}
+
+// ── CATEGORY CHART ──
+function renderCategoryChart(answeredArr) {
+  const catStats = {};
+  questions.forEach((q, i) => {
+    if (!catStats[q.category]) catStats[q.category] = { correct: 0, total: 0 };
+    catStats[q.category].total++;
+    if (answeredArr[i] === q.answer) catStats[q.category].correct++;
+  });
+  const container = document.getElementById('catChart');
+  const rows = Object.entries(catStats).map(([cat, s]) => {
+    const p = Math.round((s.correct / s.total) * 100);
+    const color = p >= 75 ? '#2ECC71' : p >= 50 ? '#F39C12' : '#E74C3C';
+    return `<div class="cat-row">
+      <div class="cat-label">${cat}</div>
+      <div class="cat-bar-bg"><div class="cat-bar-fill" style="width:${p}%;background:${color}"></div></div>
+      <div class="cat-pct">${p}%</div>
+    </div>`;
+  }).join('');
+  container.innerHTML = `<div class="cat-chart-title">Performance par catégorie</div>${rows}`;
+}
+
+// ── CONFETTI ──
+function launchConfetti() {
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999';
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  const colors = ['#C0392B','#E74C3C','#F39C12','#2ECC71','#3498DB','#9B59B6','#F1C40F'];
+  const pieces = Array.from({length: 120}, () => ({
+    x: Math.random() * canvas.width, y: Math.random() * -canvas.height,
+    w: Math.random() * 10 + 5, h: Math.random() * 6 + 3,
+    r: Math.random() * Math.PI * 2, dr: (Math.random() - 0.5) * 0.2,
+    dy: Math.random() * 4 + 2, dx: (Math.random() - 0.5) * 2,
+    color: colors[Math.floor(Math.random() * colors.length)]
+  }));
+  let frame = 0;
+  const animate = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+      ctx.fillStyle = p.color; ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
+      p.y += p.dy; p.x += p.dx; p.r += p.dr;
+    });
+    if (++frame < 160) requestAnimationFrame(animate);
+    else document.body.removeChild(canvas);
+  };
+  animate();
+}
+
+// ── PRINT ──
+function printBulletin() { window.print(); }
+
+// ── TABS ──
+function switchTab(panelId, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(panelId).classList.add('active');
+  btn.classList.add('active');
+  if (panelId === 'tab-stats') renderStatsPanel();
+}
+
+// ── STATS PANEL ──
+function renderStatsPanel() {
+  const results = loadResults();
+  const panel = document.getElementById('statsPanel');
+  if (results.length === 0) {
+    panel.innerHTML = '<div class="no-results"><span class="icon">📊</span><p>Aucune donnée disponible.</p></div>';
+    return;
+  }
+  const pcts = results.map(r => r.pct);
+  const avg = Math.round(pcts.reduce((a,b) => a+b, 0) / pcts.length);
+  const max = Math.max(...pcts), min = Math.min(...pcts);
+  const passed = pcts.filter(p => p >= 60).length;
+  const passRate = Math.round((passed / results.length) * 100);
+
+  const dist = { 'Très Bien (≥90%)': 0, 'Bien (75-89%)': 0, 'Passable (60-74%)': 0, 'Insuffisant (<60%)': 0 };
+  pcts.forEach(p => {
+    if (p >= 90) dist['Très Bien (≥90%)']++;
+    else if (p >= 75) dist['Bien (75-89%)']++;
+    else if (p >= 60) dist['Passable (60-74%)']++;
+    else dist['Insuffisant (<60%)']++;
+  });
+  const distColors = { 'Très Bien (≥90%)': '#2ECC71', 'Bien (75-89%)': '#3498DB', 'Passable (60-74%)': '#F39C12', 'Insuffisant (<60%)': '#E74C3C' };
+  const distRows = Object.entries(dist).map(([lbl, count]) => {
+    const p = Math.round((count / results.length) * 100);
+    return `<div class="cat-row">
+      <div class="cat-label" style="width:160px;font-size:11px;">${lbl}</div>
+      <div class="cat-bar-bg"><div class="cat-bar-fill" style="width:${p}%;background:${distColors[lbl]}"></div></div>
+      <div class="cat-pct">${count} (${p}%)</div>
+    </div>`;
+  }).join('');
+
+  const podium = [...results].sort((a,b) => b.pct - a.pct).slice(0,3).map((r,i) => {
+    const medals = ['🥇','🥈','🥉'];
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:20px;">${medals[i]}</span>
+      <span style="flex:1;font-weight:600;font-size:14px;">${r.fullName}</span>
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--red);">${r.pct}%</span>
+    </div>`;
+  }).join('');
+
+  panel.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:28px;">
+      ${[{n:avg+'%',l:'Moyenne',c:'#3498DB'},{n:max+'%',l:'Meilleur',c:'#2ECC71'},{n:min+'%',l:'Plus Bas',c:'#E74C3C'},{n:passRate+'%',l:'Taux Réussite',c:'#F39C12'}]
+        .map(s => `<div style="background:var(--dark);border-radius:6px;padding:16px;text-align:center;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:${s.c};line-height:1;">${s.n}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--gray);letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;">${s.l}</div>
+        </div>`).join('')}
+    </div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gray);margin-bottom:12px;">Distribution des mentions</div>
+    ${distRows}
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gray);margin:24px 0 12px;">🏆 Podium</div>
+    ${podium}
+  `;
+}
+
+renderQuiz();
+</script>
+</body>
+</html>
