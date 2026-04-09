@@ -6,6 +6,9 @@
 <title>QCM — Contrôleurs Laravel</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- jsPDF + autoTable pour export PDF mobile-friendly -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
   :root {
     --red: #C0392B;
@@ -34,7 +37,6 @@
     overflow-x: hidden;
   }
 
-  /* ── HEADER ── */
   header {
     background: var(--dark);
     padding: 0;
@@ -98,20 +100,6 @@
     letter-spacing: 0.5px;
   }
 
-  .header-meta {
-    position: absolute;
-    top: 40px; right: 32px;
-    text-align: right;
-  }
-
-  .header-meta p {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--gray);
-    line-height: 1.8;
-  }
-
-  /* ── PROGRESS BAR ── */
   .progress-wrap {
     background: var(--mid);
     height: 6px;
@@ -124,14 +112,12 @@
     transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
   }
 
-  /* ── MAIN ── */
   main {
     max-width: 900px;
     margin: 0 auto;
     padding: 48px 32px 80px;
   }
 
-  /* ── SCORE BOARD (top) ── */
   .scoreboard {
     display: flex;
     align-items: center;
@@ -210,7 +196,6 @@
     font-weight: 400;
   }
 
-  /* ── QUESTION CARD ── */
   .q-card {
     background: #fff;
     border: 1px solid var(--border);
@@ -263,7 +248,6 @@
     padding-top: 4px;
   }
 
-  /* code inline */
   code {
     font-family: 'JetBrains Mono', monospace;
     background: #F5ECE8;
@@ -273,7 +257,6 @@
     font-size: 0.88em;
   }
 
-  /* ── OPTIONS ── */
   .q-options {
     padding: 16px 24px 20px;
     display: flex;
@@ -358,7 +341,6 @@
   .option.correct .icon-result,
   .option.wrong .icon-result { opacity: 1; }
 
-  /* ── EXPLANATION ── */
   .explanation {
     margin: 0 24px 16px;
     padding: 12px 16px;
@@ -377,7 +359,6 @@
 
   .explanation strong { color: var(--green); font-weight: 600; }
 
-  /* ── RESULTS CARD ── */
   .results-card {
     display: none;
     background: var(--dark);
@@ -454,7 +435,6 @@
   .n.red { color: var(--red-light); }
   .n.white { color: #fff; }
 
-  /* mention */
   .mention-badge {
     display: inline-block;
     padding: 8px 24px;
@@ -470,7 +450,6 @@
   .mention-passable { background: #7D6608; color: #fff; }
   .mention-insuffisant { background: #922B21; color: #fff; }
 
-  /* big percentage */
   .big-pct {
     font-family: 'Bebas Neue', sans-serif;
     font-size: 80px;
@@ -480,22 +459,6 @@
     margin-bottom: 4px;
   }
 
-  /* bar chart */
-  .bar-chart {
-    margin: 24px 0 0;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    gap: 4px;
-    height: 48px;
-  }
-
-  .bar-seg {
-    flex: 1;
-    border-radius: 2px 2px 0 0;
-    transition: height 0.6s cubic-bezier(0.4,0,0.2,1);
-  }
-
   .fab:disabled {
     opacity: 0.4;
     cursor: not-allowed;
@@ -503,7 +466,6 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
   }
 
-  /* ── TIMER ── */
   .timer-bar-wrap {
     background: var(--dark);
     height: 3px;
@@ -520,7 +482,6 @@
     transform-origin: left;
   }
 
-  /* ── CATEGORY CHART ── */
   .cat-chart {
     padding: 20px 28px 24px;
     border-top: 1px solid var(--border);
@@ -575,7 +536,28 @@
     flex-shrink: 0;
   }
 
-  /* ── PRINT BULLETIN ── */
+  /* ── BOUTON PDF ── */
+  .btn-pdf {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 36px;
+    background: linear-gradient(135deg, #8E1A1A, #C0392B);
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
+    margin-top: 12px;
+    box-shadow: 0 4px 18px rgba(192,57,43,0.35);
+  }
+
+  .btn-pdf:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 24px rgba(192,57,43,0.45); }
+  .btn-pdf:active { transform: translateY(0); }
+
   .btn-print {
     display: inline-flex;
     align-items: center;
@@ -595,7 +577,6 @@
 
   .btn-print:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.5); }
 
-  /* ── CHRONO DISPLAY ── */
   .chrono {
     position: absolute;
     top: 40px;
@@ -622,7 +603,6 @@
     text-transform: uppercase;
   }
 
-  /* ── INPUT VALIDATION ERROR ── */
   .field-error {
     font-size: 11px;
     color: var(--red);
@@ -634,7 +614,6 @@
   .field-group.error input { border-color: var(--red) !important; background: #FEF0EE; }
   .field-group.error .field-error { display: block; }
 
-  /* ── DETAIL MODAL TAB ── */
   .tab-bar {
     display: flex;
     border-bottom: 2px solid var(--border);
@@ -673,6 +652,8 @@
     main { padding: 0 !important; }
     .results-student, .results-trophy { display: block !important; }
   }
+
+  .btn-submit {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -714,7 +695,6 @@
 
   .btn-restart:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.5); }
 
-  /* ── SECTION DIVIDER ── */
   .section-label {
     display: flex;
     align-items: center;
@@ -738,7 +718,6 @@
     background: var(--border);
   }
 
-  /* ── STUDENT FORM ── */
   .student-form {
     background: #fff;
     border: 1px solid var(--border);
@@ -873,8 +852,6 @@
     margin-bottom: 8px;
   }
 
-  /* ── RESPONSIVE ── */
-  /* ── FLOATING ACTION BAR ── */
   .fab-bar {
     position: fixed;
     bottom: 28px;
@@ -904,19 +881,13 @@
   .fab:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(0,0,0,0.32); }
   .fab:active { transform: translateY(0); }
 
-  .fab-excel {
-    background: #1D6F42;
-    color: #fff;
-  }
-
-  .fab-view {
-    background: #1A5276;
-    color: #fff;
-  }
+  .fab-excel { background: #1D6F42; color: #fff; }
+  .fab-view { background: #1A5276; color: #fff; }
+  /* FAB PDF */
+  .fab-pdf { background: #8E1A1A; color: #fff; }
 
   .fab-icon { font-size: 18px; }
 
-  /* ── MODAL OVERLAY ── */
   .modal-overlay {
     position: fixed;
     inset: 0;
@@ -1044,7 +1015,6 @@
     padding: 0;
   }
 
-  /* Results table */
   .results-table {
     width: 100%;
     border-collapse: collapse;
@@ -1072,12 +1042,10 @@
   }
 
   .results-table tr:hover td { background: #FEF8F5; }
-
   .results-table tr:last-child td { border-bottom: none; }
 
   .td-name { font-weight: 600; color: var(--dark); }
   .td-date { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--gray); }
-
   .td-score { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--dark); }
 
   .td-pct {
@@ -1116,7 +1084,6 @@
   .no-results .icon { font-size: 40px; display: block; margin-bottom: 12px; }
   .no-results p { font-size: 14px; line-height: 1.6; }
 
-  /* Rank badge */
   .rank {
     width: 24px; height: 24px;
     border-radius: 50%;
@@ -1131,7 +1098,6 @@
   .rank-2 { background: #D5D8DC; color: #626567; }
   .rank-3 { background: #D4936A; color: #784212; }
 
-  /* Toast */
   .toast {
     position: fixed;
     bottom: 100px;
@@ -1162,6 +1128,10 @@
     .modal-header { padding: 16px 20px; }
     .modal-toolbar { padding: 12px 16px; }
     .results-table th, .results-table td { padding: 10px 12px; }
+    .student-fields { grid-template-columns: 1fr; }
+    .results-grid { grid-template-columns: 1fr; gap: 10px; }
+    .big-pct { font-size: 56px; }
+    .results-card { padding: 28px 20px; }
   }
 </style>
 </head>
@@ -1200,8 +1170,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Student display chip (shown in scoreboard after fill) -->
 
   <!-- Scoreboard -->
   <div class="scoreboard" id="scoreboard">
@@ -1259,8 +1227,9 @@
     </div>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:12px;">
       <button class="btn-restart" onclick="restartQuiz()">↺ RECOMMENCER</button>
-      <button class="btn-print" onclick="printBulletin()">🖨 IMPRIMER LE BULLETIN</button>
-      <button class="btn-restart" style="background:rgba(29,111,66,0.15);border-color:#2ECC71;color:#2ECC71;" onclick="exportToExcel()">📥 TÉLÉCHARGER EXCEL</button>
+      <button class="btn-print" onclick="printBulletin()">🖨 IMPRIMER</button>
+      <button class="btn-pdf" id="btnPdf" onclick="exportToPDF()">📄 EXPORTER PDF</button>
+      <button class="btn-restart" style="background:rgba(29,111,66,0.15);border-color:#2ECC71;color:#2ECC71;" onclick="exportToExcel()">📥 EXCEL</button>
     </div>
 
     <!-- Category performance chart -->
@@ -1278,11 +1247,15 @@
 <div class="fab-bar">
   <button class="fab fab-view" onclick="openModal()">
     <span class="fab-icon">📊</span>
-    <span class="fab-label">AFFICHER LES RÉSULTATS</span>
+    <span class="fab-label">RÉSULTATS</span>
+  </button>
+  <button class="fab fab-pdf" onclick="exportToPDF()" id="fabPdf" disabled title="Validez le QCM d'abord">
+    <span class="fab-icon">📄</span>
+    <span class="fab-label">PDF</span>
   </button>
   <button class="fab fab-excel" onclick="exportToExcel()" id="fabExcel" disabled title="Validez le QCM d'abord">
     <span class="fab-icon">⬇</span>
-    <span class="fab-label">EXPORTER EXCEL</span>
+    <span class="fab-label">EXCEL</span>
   </button>
 </div>
 
@@ -1298,15 +1271,15 @@
     </div>
     <div class="modal-toolbar">
       <div class="modal-count" id="modalCount"><strong>0</strong> résultat(s) enregistré(s)</div>
-      <button class="btn-export-modal" onclick="exportToExcel()">📥 Exporter Excel</button>
-      <button class="btn-clear-results" onclick="clearAllResults()">🗑 Effacer tout</button>
+      <button class="btn-export-modal" onclick="exportToExcel()">📥 Excel</button>
+      <button class="btn-export-modal" style="background:#8E1A1A;" onclick="exportToPDF()">📄 PDF</button>
+      <button class="btn-clear-results" onclick="clearAllResults()">🗑 Effacer</button>
     </div>
     <div class="tab-bar">
       <button class="tab-btn active" onclick="switchTab('tab-list', this)">📋 CLASSEMENT</button>
       <button class="tab-btn" onclick="switchTab('tab-stats', this)">📈 STATISTIQUES</button>
     </div>
     <div class="modal-body">
-      <!-- Tab: List -->
       <div class="tab-panel active" id="tab-list">
         <table class="results-table" id="resultsTable">
           <thead>
@@ -1326,7 +1299,6 @@
           <p>Aucun résultat enregistré.<br>Complétez un QCM pour voir les résultats ici.</p>
         </div>
       </div>
-      <!-- Tab: Stats -->
       <div class="tab-panel" id="tab-stats">
         <div id="statsPanel" style="padding:28px;"></div>
       </div>
@@ -1379,103 +1351,98 @@ const questions = [
   },
   {
     category: "Artisan",
-    text: "Quelle commande Artisan permet de créer un nouveau contrôleur <code>UserController</code> ?",
+    text: "Quelle commande Artisan permet de créer un nouveau contrôleur UserController ?",
     options: [
-      "<code>php artisan create:controller UserController</code>",
-      "<code>php artisan generate:controller UserController</code>",
-      "<code>php artisan make:controller UserController</code>",
-      "<code>php artisan new:controller UserController</code>"
+      "php artisan create:controller UserController",
+      "php artisan generate:controller UserController",
+      "php artisan make:controller UserController",
+      "php artisan new:controller UserController"
     ],
     answer: 2,
-    explanation: "La commande correcte est <strong>php artisan make:controller UserController</strong>. Elle génère le fichier dans app/Http/Controllers/."
+    explanation: "La commande correcte est php artisan make:controller UserController. Elle génère le fichier dans app/Http/Controllers/."
   },
   {
     category: "Structure",
     text: "Par défaut, dans quel répertoire sont stockés les contrôleurs Laravel ?",
     options: [
-      "<code>app/Controllers</code>",
-      "<code>resources/Controllers</code>",
-      "<code>app/Http/Controllers</code>",
-      "<code>routes/Controllers</code>"
+      "app/Controllers",
+      "resources/Controllers",
+      "app/Http/Controllers",
+      "routes/Controllers"
     ],
     answer: 2,
-    explanation: "Par défaut, les contrôleurs sont stockés dans <strong>app/Http/Controllers</strong>."
+    explanation: "Par défaut, les contrôleurs sont stockés dans app/Http/Controllers."
   },
   {
     category: "Routage",
-    text: "Comment associer la méthode <code>show</code> du <code>UserController</code> à une route GET ?",
+    text: "Comment associer la méthode show du UserController à une route GET ?",
     options: [
-      "<code>Route::get('/user/{id}', 'UserController@show');</code>",
-      "<code>Route::get('/user/{id}', [UserController::class, 'show']);</code>",
-      "<code>Route::show('/user/{id}', UserController::class);</code>",
-      "<code>Route::get('/user', UserController::show);</code>"
+      "Route::get('/user/{id}', 'UserController@show');",
+      "Route::get('/user/{id}', [UserController::class, 'show']);",
+      "Route::show('/user/{id}', UserController::class);",
+      "Route::get('/user', UserController::show);"
     ],
     answer: 1,
-    explanation: "La syntaxe moderne Laravel utilise un tableau : <strong>[UserController::class, 'show']</strong>."
+    explanation: "La syntaxe moderne Laravel utilise un tableau : [UserController::class, 'show']."
   },
   {
     category: "Simple Action",
     text: "Quelle méthode spéciale doit contenir un contrôleur à simple action (invokable) ?",
     options: [
-      "<code>__handle()</code>",
-      "<code>__call()</code>",
-      "<code>__invoke()</code>",
-      "<code>__run()</code>"
+      "__handle()",
+      "__call()",
+      "__invoke()",
+      "__run()"
     ],
     answer: 2,
-    explanation: "Un contrôleur invokable définit une seule méthode <strong>__invoke()</strong> pour gérer une action unique complexe."
+    explanation: "Un contrôleur invokable définit une seule méthode __invoke() pour gérer une action unique complexe."
   },
   {
     category: "Artisan",
     text: "Quelle option Artisan génère un contrôleur invokable ?",
     options: [
-      "<code>--single</code>",
-      "<code>--action</code>",
-      "<code>--invokable</code>",
-      "<code>--invoke</code>"
+      "--single",
+      "--action",
+      "--invokable",
+      "--invoke"
     ],
     answer: 2,
-    explanation: "La commande est <strong>php artisan make:controller NomController --invokable</strong>."
+    explanation: "La commande est php artisan make:controller NomController --invokable."
   },
   {
     category: "Middleware",
-    text: "Comment affecter un middleware <code>auth</code> à une route de contrôleur dans le fichier de routes ?",
+    text: "Comment affecter un middleware auth à une route de contrôleur dans le fichier de routes ?",
     options: [
-      "<code>Route::get('profile', UserController::class)->auth();</code>",
-      "<code>Route::get('profile', [UserController::class, 'show'])->middleware('auth');</code>",
-      "<code>Route::middleware('auth')->get('profile', UserController::class);</code>",
+      "Route::get('profile', UserController::class)->auth();",
+      "Route::get('profile', [UserController::class, 'show'])->middleware('auth');",
+      "Route::middleware('auth')->get('profile', UserController::class);",
       "Les deux options B et C sont correctes"
     ],
     answer: 3,
-    explanation: "On peut chaîner <strong>->middleware('auth')</strong> sur la route, ou utiliser le groupe <strong>Route::middleware()->group()</strong>. Les options B et C sont toutes les deux valides."
+    explanation: "On peut chaîner ->middleware('auth') sur la route, ou utiliser le groupe Route::middleware()->group(). Les options B et C sont toutes les deux valides."
   },
   {
     category: "Ressources",
-    text: "Quelle commande crée un contrôleur de ressources complet (CRUD) pour <code>PhotoController</code> ?",
+    text: "Quelle commande crée un contrôleur de ressources complet (CRUD) pour PhotoController ?",
     options: [
-      "<code>php artisan make:controller PhotoController --crud</code>",
-      "<code>php artisan make:controller PhotoController --resource</code>",
-      "<code>php artisan make:controller PhotoController --rest</code>",
-      "<code>php artisan make:controller PhotoController --full</code>"
+      "php artisan make:controller PhotoController --crud",
+      "php artisan make:controller PhotoController --resource",
+      "php artisan make:controller PhotoController --rest",
+      "php artisan make:controller PhotoController --full"
     ],
     answer: 1,
-    explanation: "L'option <strong>--resource</strong> génère un contrôleur avec toutes les méthodes CRUD : index, create, store, show, edit, update, destroy."
+    explanation: "L'option --resource génère un contrôleur avec toutes les méthodes CRUD : index, create, store, show, edit, update, destroy."
   },
   {
     category: "Ressources",
-    text: "Combien de routes sont créées par <code>Route::resource('photos', PhotoController::class)</code> ?",
-    options: [
-      "4",
-      "5",
-      "6",
-      "7"
-    ],
+    text: "Combien de routes sont créées par Route::resource('photos', PhotoController::class) ?",
+    options: ["4","5","6","7"],
     answer: 3,
-    explanation: "Route::resource crée <strong>7 routes</strong> : index, create, store, show, edit, update, destroy."
+    explanation: "Route::resource crée 7 routes : index, create, store, show, edit, update, destroy."
   },
   {
     category: "Ressources",
-    text: "Quel verbe HTTP et quelle action correspondent à l'URI <code>/photos/{photo}</code> pour la suppression ?",
+    text: "Quel verbe HTTP et quelle action correspondent à l'URI /photos/{photo} pour la suppression ?",
     options: [
       "GET — destroy",
       "POST — delete",
@@ -1483,19 +1450,19 @@ const questions = [
       "PUT — remove"
     ],
     answer: 2,
-    explanation: "La suppression utilise le verbe <strong>DELETE</strong> sur <strong>/photos/{photo}</strong>, appelant l'action <strong>destroy</strong>."
+    explanation: "La suppression utilise le verbe DELETE sur /photos/{photo}, appelant l'action destroy."
   },
   {
     category: "API",
-    text: "Quelle méthode exclut automatiquement les routes <code>create</code> et <code>edit</code> pour une API ?",
+    text: "Quelle méthode exclut automatiquement les routes create et edit pour une API ?",
     options: [
-      "<code>Route::resource()->api()</code>",
-      "<code>Route::apiResource('photos', PhotoController::class)</code>",
-      "<code>Route::resource()->except(['create','edit'])</code>",
+      "Route::resource()->api()",
+      "Route::apiResource('photos', PhotoController::class)",
+      "Route::resource()->except(['create','edit'])",
       "Les deux B et C sont équivalents"
     ],
     answer: 3,
-    explanation: "<strong>Route::apiResource()</strong> exclut create et edit automatiquement. L'option C avec ->except() produit le même résultat. Les deux sont donc valides."
+    explanation: "Route::apiResource() exclut create et edit automatiquement. L'option C avec ->except() produit le même résultat. Les deux sont donc valides."
   },
   {
     category: "Injection",
@@ -1511,41 +1478,45 @@ const questions = [
   },
   {
     category: "Ressources imbriquées",
-    text: "Quelle syntaxe de route crée une ressource imbriquée photos → commentaires ?",
+    text: "Quelle syntaxe de route crée une ressource imbriquée photos -> commentaires ?",
     options: [
-      "<code>Route::resource('photos/comments', PhotoCommentController::class)</code>",
-      "<code>Route::resource('photos->comments', PhotoCommentController::class)</code>",
-      "<code>Route::resource('photos.comments', PhotoCommentController::class)</code>",
-      "<code>Route::nestedResource('photos', 'comments', Controller::class)</code>"
+      "Route::resource('photos/comments', PhotoCommentController::class)",
+      "Route::resource('photos->comments', PhotoCommentController::class)",
+      "Route::resource('photos.comments', PhotoCommentController::class)",
+      "Route::nestedResource('photos', 'comments', Controller::class)"
     ],
     answer: 2,
-    explanation: "Laravel utilise la <strong>notation point</strong> pour les ressources imbriquées : <strong>'photos.comments'</strong>."
+    explanation: "Laravel utilise la notation point pour les ressources imbriquées : 'photos.comments'."
   },
   {
     category: "Routes partielles",
-    text: "Comment limiter un contrôleur de ressources aux seules actions <code>index</code> et <code>show</code> ?",
+    text: "Comment limiter un contrôleur de ressources aux seules actions index et show ?",
     options: [
-      "<code>Route::resource('photos', PhotoController::class)->limit(['index','show'])</code>",
-      "<code>Route::resource('photos', PhotoController::class)->only(['index','show'])</code>",
-      "<code>Route::resource('photos', PhotoController::class)->filter(['index','show'])</code>",
-      "<code>Route::resource('photos', PhotoController::class)->restrict(['index','show'])</code>"
+      "Route::resource('photos', PhotoController::class)->limit(['index','show'])",
+      "Route::resource('photos', PhotoController::class)->only(['index','show'])",
+      "Route::resource('photos', PhotoController::class)->filter(['index','show'])",
+      "Route::resource('photos', PhotoController::class)->restrict(['index','show'])"
     ],
     answer: 1,
-    explanation: "La méthode <strong>->only(['index', 'show'])</strong> limite les routes aux actions spécifiées."
+    explanation: "La méthode ->only(['index', 'show']) limite les routes aux actions spécifiées."
   },
   {
     category: "Injection méthode",
-    text: "Si une méthode de contrôleur reçoit <code>Request $request</code> ET un paramètre de route <code>$id</code>, quel ordre utiliser ?",
+    text: "Si une méthode de contrôleur reçoit Request $request ET un paramètre de route $id, quel ordre utiliser ?",
     options: [
-      "<code>function update($id, Request $request)</code>",
-      "<code>function update(Request $request, $id)</code>",
+      "function update($id, Request $request)",
+      "function update(Request $request, $id)",
       "L'ordre n'a aucune importance dans Laravel",
-      "<code>function update(Request $request) use ($id)</code>"
+      "function update(Request $request) use ($id)"
     ],
     answer: 1,
-    explanation: "Les paramètres de route sont listés <strong>après</strong> les dépendances injectées. La signature correcte est <strong>update(Request $request, $id)</strong>."
+    explanation: "Les paramètres de route sont listés après les dépendances injectées. La signature correcte est update(Request $request, $id)."
   }
 ];
+
+// Store last result for PDF
+let lastResult = null;
+let lastAnswered = [];
 
 let answered = [];
 let submitted = false;
@@ -1557,7 +1528,6 @@ function renderQuiz() {
   startChrono();
 
   questions.forEach((q, qi) => {
-    // Section label every 5 questions
     if (qi % 5 === 0) {
       const sec = document.createElement('div');
       sec.className = 'section-label';
@@ -1590,7 +1560,6 @@ function renderQuiz() {
   });
 
   updateScore();
-  updateProgress();
 }
 
 function selectOption(qi, oi) {
@@ -1598,13 +1567,11 @@ function selectOption(qi, oi) {
   if (answered[qi] === oi) { answered[qi] = null; }
   else { answered[qi] = oi; }
 
-  // Update UI for this question
   for (let i = 0; i < questions[qi].options.length; i++) {
     const el = document.getElementById(`opt-${qi}-${i}`);
     el.classList.toggle('selected', answered[qi] === i);
   }
   updateScore();
-  updateProgress();
 }
 
 function updateScore() {
@@ -1612,20 +1579,13 @@ function updateScore() {
   document.getElementById('progressBar').style.width = `${(answered_count/questions.length)*100}%`;
 }
 
-function updateProgress() {
-  // just visual feedback — score shown after submit
-}
-
 function submitQuiz() {
-  // Validate student name
   const nom = document.getElementById('inputNom').value.trim();
   const prenom = document.getElementById('inputPrenom').value.trim();
-  let hasError = false;
 
   document.getElementById('fgNom').classList.toggle('error', !nom);
   document.getElementById('fgPrenom').classList.toggle('error', !prenom);
   if (!nom || !prenom) {
-    hasError = true;
     document.getElementById('studentForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
     showToast('⚠️ Veuillez saisir votre nom et prénom avant de valider.');
     return;
@@ -1640,6 +1600,7 @@ function submitQuiz() {
   }
 
   submitted = true;
+  lastAnswered = [...answered];
   document.getElementById('btnSubmit').disabled = true;
   const duration = stopChrono();
 
@@ -1658,17 +1619,14 @@ function submitQuiz() {
       }
     }
     if (sel === q.answer) correct++;
-    // Show explanation
     document.getElementById(`exp-${qi}`).classList.add('show');
   });
 
   const pct = Math.round((correct / questions.length) * 100);
 
-  // Update scoreboard
   document.getElementById('scoreVal').innerHTML = `${correct} <span>/ ${questions.length}</span>`;
   document.getElementById('scorePct').textContent = `${pct}%`;
 
-  // Animate ring
   const circumference = 188;
   const offset = circumference - (pct / 100) * circumference;
   const ring = document.getElementById('ringFill');
@@ -1677,18 +1635,16 @@ function submitQuiz() {
   else if (pct >= 60) ring.style.stroke = '#F39C12';
   else ring.style.stroke = '#E74C3C';
 
-  // Progress bar
   document.getElementById('progressBar').style.width = '100%';
 
-  // Student name in results
   const studentName = getStudentName();
   document.getElementById('resultsStudentName').textContent = studentName.toUpperCase();
 
-  // Save to localStorage
   const now = new Date();
-  const nomVal = document.getElementById('inputNom').value.trim();
-  const prenomVal = document.getElementById('inputPrenom').value.trim();
-  saveResult({
+  const nomVal = nom;
+  const prenomVal = prenom;
+
+  lastResult = {
     fullName: studentName,
     nom: nomVal,
     prenom: prenomVal,
@@ -1698,16 +1654,17 @@ function submitQuiz() {
     duration,
     date: now.toLocaleDateString('fr-FR'),
     time: now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})
-  });
+  };
 
-  // Enable Excel FAB
+  saveResult(lastResult);
+
   document.getElementById('fabExcel').disabled = false;
-  document.getElementById('fabExcel').title = 'Télécharger les résultats en Excel';
+  document.getElementById('fabExcel').title = '';
+  document.getElementById('fabPdf').disabled = false;
+  document.getElementById('fabPdf').title = '';
 
-  // Show duration
   document.getElementById('timeTaken').textContent = duration;
 
-  // Results card
   const rc = document.getElementById('resultsCard');
   rc.classList.add('show');
 
@@ -1736,15 +1693,14 @@ function submitQuiz() {
 
   rc.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  // Render category performance chart
   setTimeout(() => renderCategoryChart(answered), 400);
-
-  // Confetti if excellent
   if (pct >= 75) setTimeout(() => launchConfetti(), 600);
 }
 
 function restartQuiz() {
   submitted = false;
+  lastResult = null;
+  lastAnswered = [];
   document.getElementById('btnSubmit').disabled = false;
   document.getElementById('resultsCard').classList.remove('show');
   document.getElementById('catChart').innerHTML = '';
@@ -1756,16 +1712,16 @@ function restartQuiz() {
   setTimeout(renderQuiz, 400);
 }
 
-// ── ON LOAD ──
 window.addEventListener('DOMContentLoaded', () => {
   if (loadResults().length > 0) {
     const fab = document.getElementById('fabExcel');
-    if (fab) { fab.disabled = false; fab.title = 'Télécharger les résultats en Excel'; }
+    if (fab) { fab.disabled = false; }
+    const fabPdf = document.getElementById('fabPdf');
+    if (fabPdf) { fabPdf.disabled = false; }
   }
 });
 
 // ── STORAGE ──
-
 function loadResults() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
   catch { return []; }
@@ -1794,6 +1750,356 @@ function getMention(pct) {
   return { label: 'TRÈS INSUFFISANT', pillClass: 'pill-red', pctClass: 'pct-red' };
 }
 
+// ── PDF EXPORT ──
+function exportToPDF() {
+  const results = loadResults();
+
+  // Si pas de résultat individuel connu, utiliser le dernier
+  const current = lastResult;
+
+  if (!current && results.length === 0) {
+    showToast('⚠️ Aucun résultat à exporter. Validez le QCM d\'abord.');
+    return;
+  }
+
+  showToast('📄 Génération du PDF en cours…', 2000);
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W = 210, H = 297;
+  const margin = 18;
+
+  // ── Page 1 : Bulletin individuel ──
+  const r = current || results[results.length - 1];
+  const m = getMention(r.pct);
+
+  // Header band
+  doc.setFillColor(26, 10, 5);
+  doc.rect(0, 0, W, 52, 'F');
+
+  // Accent bar
+  doc.setFillColor(192, 57, 43);
+  doc.rect(0, 0, 6, 52, 'F');
+
+  // Title
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(26);
+  doc.text('BULLETIN DE RÉSULTATS', margin + 4, 20);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(140, 123, 116);
+  doc.text('QCM Contrôleurs Laravel · Séance 15 · 07/04/2026', margin + 4, 28);
+  doc.text('Groupe DEVOWFS201 · Formateur : NASSIRI ILYAS', margin + 4, 35);
+
+  // Big percentage top-right
+  const pctColor = r.pct >= 75 ? [46,204,113] : r.pct >= 60 ? [243,156,18] : [231,76,60];
+  doc.setTextColor(...pctColor);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(36);
+  doc.text(`${r.pct}%`, W - margin - 4, 30, { align: 'right' });
+  doc.setFontSize(9);
+  doc.setTextColor(140, 123, 116);
+  doc.text('SCORE FINAL', W - margin - 4, 38, { align: 'right' });
+
+  // Student info card
+  let y = 62;
+  doc.setFillColor(253, 246, 236);
+  doc.roundedRect(margin, y, W - margin * 2, 38, 3, 3, 'F');
+  doc.setDrawColor(232, 213, 204);
+  doc.roundedRect(margin, y, W - margin * 2, 38, 3, 3, 'S');
+
+  // Avatar circle
+  doc.setFillColor(192, 57, 43);
+  doc.circle(margin + 14, y + 19, 10, 'F');
+  const initials = [r.prenom, r.nom].filter(Boolean).map(s => s[0].toUpperCase()).join('');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text(initials || '?', margin + 14, y + 21, { align: 'center' });
+
+  // Student name & info
+  doc.setTextColor(26, 10, 5);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.text(r.fullName.toUpperCase(), margin + 30, y + 16);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(140, 123, 116);
+  doc.text(`Groupe : DEVOWFS201  ·  Date : ${r.date}  ·  Heure : ${r.time}  ·  Durée : ${r.duration || '—'}`, margin + 30, y + 24);
+
+  // Mention badge
+  const mColors = {
+    'TRÈS BIEN': [30, 132, 73],
+    'BIEN': [26, 82, 118],
+    'PASSABLE': [125, 102, 8],
+    'INSUFFISANT': [146, 43, 33],
+    'TRÈS INSUFFISANT': [146, 43, 33]
+  };
+  const mCol = mColors[m.label] || [146, 43, 33];
+  doc.setFillColor(...mCol);
+  doc.roundedRect(margin + 30, y + 27, 48, 8, 2, 2, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.text(m.label, margin + 54, y + 33, { align: 'center' });
+
+  // Stats boxes
+  y += 48;
+  const boxW = (W - margin * 2 - 12) / 3;
+  const statsData = [
+    { label: 'RÉPONSES CORRECTES', value: String(r.correct), color: [46,204,113] },
+    { label: 'RÉPONSES INCORRECTES', value: String(r.total - r.correct), color: [231,76,60] },
+    { label: 'TOTAL QUESTIONS', value: String(r.total), color: [255,255,255] },
+  ];
+
+  statsData.forEach((s, i) => {
+    const bx = margin + i * (boxW + 6);
+    doc.setFillColor(26, 10, 5);
+    doc.roundedRect(bx, y, boxW, 28, 2, 2, 'F');
+    doc.setTextColor(...s.color);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(22);
+    doc.text(s.value, bx + boxW / 2, y + 16, { align: 'center' });
+    doc.setTextColor(140, 123, 116);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.text(s.label, bx + boxW / 2, y + 24, { align: 'center' });
+  });
+
+  // Progress bar visual
+  y += 36;
+  doc.setFontSize(9);
+  doc.setTextColor(61, 26, 16);
+  doc.setFont('helvetica', 'bold');
+  doc.text('PROGRESSION', margin, y);
+  y += 4;
+  doc.setFillColor(232, 213, 204);
+  doc.roundedRect(margin, y, W - margin * 2, 6, 3, 3, 'F');
+  const fillW = ((W - margin * 2) * r.pct) / 100;
+  doc.setFillColor(...pctColor);
+  doc.roundedRect(margin, y, fillW, 6, 3, 3, 'F');
+
+  // Category performance
+  y += 14;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(26, 10, 5);
+  doc.text('PERFORMANCE PAR CATÉGORIE', margin, y);
+  y += 6;
+
+  // Compute category stats from lastAnswered
+  const catStats = {};
+  questions.forEach((q, i) => {
+    if (!catStats[q.category]) catStats[q.category] = { correct: 0, total: 0 };
+    catStats[q.category].total++;
+    if (lastAnswered[i] === q.answer) catStats[q.category].correct++;
+  });
+
+  Object.entries(catStats).forEach(([cat, s]) => {
+    const p = Math.round((s.correct / s.total) * 100);
+    const barColor = p >= 75 ? [46,204,113] : p >= 50 ? [243,156,18] : [231,76,60];
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(61, 26, 16);
+    doc.text(cat, margin, y + 4);
+    // bar bg
+    doc.setFillColor(232, 213, 204);
+    doc.roundedRect(margin + 40, y, W - margin * 2 - 60, 5, 2, 2, 'F');
+    // bar fill
+    const bFill = ((W - margin * 2 - 60) * p) / 100;
+    doc.setFillColor(...barColor);
+    if (bFill > 0) doc.roundedRect(margin + 40, y, bFill, 5, 2, 2, 'F');
+    // pct
+    doc.setTextColor(140, 123, 116);
+    doc.setFontSize(8);
+    doc.text(`${p}%`, W - margin, y + 4, { align: 'right' });
+    y += 9;
+  });
+
+  // Divider
+  y += 4;
+  doc.setDrawColor(232, 213, 204);
+  doc.line(margin, y, W - margin, y);
+  y += 8;
+
+  // Détail questions
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(26, 10, 5);
+  doc.text('DÉTAIL DES RÉPONSES', margin, y);
+  y += 6;
+
+  questions.forEach((q, qi) => {
+    const sel = lastAnswered[qi];
+    const isCorrect = sel === q.answer;
+    const rowH = 10;
+
+    if (y + rowH > H - 20) {
+      doc.addPage();
+      y = 20;
+      // Mini header on continuation pages
+      doc.setFillColor(26, 10, 5);
+      doc.rect(0, 0, W, 14, 'F');
+      doc.setFillColor(192, 57, 43);
+      doc.rect(0, 0, 4, 14, 'F');
+      doc.setTextColor(255,255,255);
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(8);
+      doc.text('QCM Contrôleurs Laravel — Suite', 8, 9);
+      y = 22;
+    }
+
+    // Row background
+    doc.setFillColor(qi % 2 === 0 ? 253 : 248, qi % 2 === 0 ? 246 : 242, qi % 2 === 0 ? 236 : 232);
+    doc.rect(margin, y - 4, W - margin * 2, rowH, 'F');
+
+    // Status dot
+    if (isCorrect) {
+      doc.setFillColor(46, 204, 113);
+    } else if (sel === null) {
+      doc.setFillColor(140, 123, 116);
+    } else {
+      doc.setFillColor(231, 76, 60);
+    }
+    doc.circle(margin + 3, y + 1, 2.5, 'F');
+
+    // Q number
+    doc.setTextColor(192, 57, 43);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.text(`Q${qi + 1}`, margin + 8, y + 2);
+
+    // Q text (truncated)
+    const qShort = q.text.length > 60 ? q.text.substring(0, 57) + '…' : q.text;
+    doc.setTextColor(26, 10, 5);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.text(qShort, margin + 18, y + 2);
+
+    // Answer status
+    const statusText = isCorrect ? 'CORRECT' : (sel === null ? 'OMIS' : 'INCORRECT');
+    const statusColor = isCorrect ? [46,204,113] : (sel === null ? [140,123,116] : [231,76,60]);
+    doc.setTextColor(...statusColor);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.text(statusText, W - margin, y + 2, { align: 'right' });
+
+    y += rowH;
+  });
+
+  // ── Page 2 : Classement global (si plusieurs résultats) ──
+  if (results.length > 1) {
+    doc.addPage();
+    y = 0;
+
+    doc.setFillColor(26, 10, 5);
+    doc.rect(0, 0, W, 36, 'F');
+    doc.setFillColor(192, 57, 43);
+    doc.rect(0, 0, 6, 36, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.text('CLASSEMENT GÉNÉRAL', margin + 4, 18);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(140, 123, 116);
+    doc.text(`${results.length} stagiaire(s) · DEVOWFS201 · Séance 15`, margin + 4, 28);
+
+    // Stats summary
+    const pcts = results.map(r2 => r2.pct);
+    const avg = Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length);
+    const maxP = Math.max(...pcts), minP = Math.min(...pcts);
+    const passed = pcts.filter(p=>p>=60).length;
+
+    y = 46;
+    const miniBoxW = (W - margin * 2 - 18) / 4;
+    [
+      {label:'MOYENNE',value:`${avg}%`,col:[52,152,219]},
+      {label:'MEILLEUR',value:`${maxP}%`,col:[46,204,113]},
+      {label:'PLUS BAS',value:`${minP}%`,col:[231,76,60]},
+      {label:'RÉUSSITE',value:`${Math.round(passed/results.length*100)}%`,col:[243,156,18]}
+    ].forEach((s, i) => {
+      const bx = margin + i * (miniBoxW + 6);
+      doc.setFillColor(26, 10, 5);
+      doc.roundedRect(bx, y, miniBoxW, 22, 2, 2, 'F');
+      doc.setTextColor(...s.col);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(14);
+      doc.text(s.value, bx + miniBoxW/2, y + 12, { align: 'center' });
+      doc.setTextColor(140, 123, 116);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(6.5);
+      doc.text(s.label, bx + miniBoxW/2, y + 19, { align: 'center' });
+    });
+
+    y += 30;
+
+    // Ranking table
+    const sorted = [...results].sort((a, b) => b.pct - a.pct);
+    doc.autoTable({
+      startY: y,
+      margin: { left: margin, right: margin },
+      head: [['#', 'Nom Complet', 'Score', '%', 'Mention', 'Date']],
+      body: sorted.map((res, i) => [
+        i + 1,
+        res.fullName,
+        `${res.correct} / ${res.total}`,
+        `${res.pct}%`,
+        getMention(res.pct).label,
+        `${res.date} ${res.time}`
+      ]),
+      headStyles: {
+        fillColor: [26, 10, 5],
+        textColor: [140, 123, 116],
+        fontStyle: 'bold',
+        fontSize: 8,
+        halign: 'left'
+      },
+      bodyStyles: { fontSize: 8, textColor: [26, 10, 5] },
+      alternateRowStyles: { fillColor: [248, 242, 232] },
+      columnStyles: {
+        0: { cellWidth: 10, halign: 'center', fontStyle: 'bold' },
+        2: { cellWidth: 22, halign: 'center' },
+        3: { cellWidth: 16, halign: 'center', fontStyle: 'bold' },
+        4: { cellWidth: 32, halign: 'center' },
+        5: { cellWidth: 34 }
+      },
+      didParseCell: (data) => {
+        if (data.section === 'body' && data.column.index === 3) {
+          const pctVal = parseInt(data.cell.raw);
+          if (pctVal >= 75) data.cell.styles.textColor = [30, 132, 73];
+          else if (pctVal >= 60) data.cell.styles.textColor = [212, 84, 0];
+          else data.cell.styles.textColor = [146, 43, 33];
+        }
+        if (data.section === 'body' && data.column.index === 0) {
+          if (data.row.index === 0) data.cell.styles.textColor = [180, 140, 0];
+          else if (data.row.index === 1) data.cell.styles.textColor = [100, 100, 110];
+          else if (data.row.index === 2) data.cell.styles.textColor = [160, 90, 50];
+        }
+      }
+    });
+  }
+
+  // Footer on all pages
+  const totalPages = doc.internal.getNumberOfPages();
+  for (let p = 1; p <= totalPages; p++) {
+    doc.setPage(p);
+    doc.setFillColor(26, 10, 5);
+    doc.rect(0, H - 12, W, 12, 'F');
+    doc.setTextColor(140, 123, 116);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.text('QCM Contrôleurs Laravel · DEVOWFS201 · Formateur : NASSIRI ILYAS · Séance 15 — 07/04/2026', margin, H - 5);
+    doc.text(`Page ${p} / ${totalPages}`, W - margin, H - 5, { align: 'right' });
+  }
+
+  const fileName = `Bulletin_${(lastResult?.nom || 'Stagiaire').replace(/\s/g,'_')}_QCM_Laravel_${new Date().toISOString().slice(0,10)}.pdf`;
+  doc.save(fileName);
+  showToast('✅ PDF téléchargé avec succès !');
+}
+
 // ── EXCEL EXPORT ──
 function exportToExcel() {
   const results = loadResults();
@@ -1801,14 +2107,12 @@ function exportToExcel() {
 
   const wb = XLSX.utils.book_new();
 
-  // Sheet 1: Résultats
   const h1 = [['#','Nom','Prénom','Nom Complet','Score','Total','Pourcentage (%)','Mention','Durée','Date','Heure','Groupe','Formateur','Matière']];
   const r1 = results.map((r,i) => [i+1,r.nom||'',r.prenom||'',r.fullName,r.correct,r.total,r.pct,getMention(r.pct).label,r.duration||'—',r.date,r.time,'DEVOWFS201','NASSIRI ILYAS','Framework Laravel — Contrôleurs']);
   const ws1 = XLSX.utils.aoa_to_sheet([...h1,...r1]);
   ws1['!cols'] = [{wch:4},{wch:14},{wch:14},{wch:24},{wch:7},{wch:6},{wch:14},{wch:16},{wch:8},{wch:12},{wch:7},{wch:12},{wch:16},{wch:28}];
   XLSX.utils.book_append_sheet(wb, ws1, 'Résultats');
 
-  // Sheet 2: Statistiques
   const pcts = results.map(r => r.pct);
   const avg = Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length);
   const passed = pcts.filter(p=>p>=60).length;
@@ -1825,7 +2129,6 @@ function exportToExcel() {
   ws2['!cols'] = [{wch:26},{wch:20}];
   XLSX.utils.book_append_sheet(wb, ws2, 'Statistiques');
 
-  // Sheet 3: Questions
   const ws3 = XLSX.utils.aoa_to_sheet([
     ['#','Catégorie','Question','Bonne Réponse'],
     ...questions.map((q,i) => [i+1, q.category, q.text.replace(/<[^>]+>/g,''), q.options[q.answer].replace(/<[^>]+>/g,'')])
@@ -1871,7 +2174,6 @@ function renderModalTable() {
   table.style.display = 'table';
   noRes.style.display = 'none';
 
-  // Sort by pct descending
   const sorted = [...results].sort((a, b) => b.pct - a.pct);
 
   tbody.innerHTML = sorted.map((r, i) => {
@@ -1895,7 +2197,6 @@ function clearAllResults() {
   showToast('🗑 Résultats effacés');
 }
 
-// Keyboard close
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
 // ── STUDENT HELPERS ──
