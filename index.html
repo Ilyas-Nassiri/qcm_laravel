@@ -885,6 +885,60 @@
   .fab-view { background: #1A5276; color: #fff; }
   /* FAB PDF */
   .fab-pdf { background: #8E1A1A; color: #fff; }
+  /* FAB Evaluation */
+  .fab-eval { background: #5B2C6F; color: #fff; }
+
+  /* Eval export menu */
+  .eval-menu {
+    position: fixed;
+    bottom: 150px;
+    right: 28px;
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+    z-index: 300;
+    overflow: hidden;
+    display: none;
+    min-width: 240px;
+    animation: slideUp 0.2s ease both;
+  }
+
+  .eval-menu.open { display: block; }
+
+  .eval-menu-header {
+    background: #5B2C6F;
+    padding: 12px 16px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 15px;
+    letter-spacing: 1.5px;
+    color: #fff;
+  }
+
+  .eval-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--dark);
+    border-bottom: 1px solid var(--border);
+    transition: background 0.12s;
+  }
+
+  .eval-menu-item:last-child { border-bottom: none; }
+  .eval-menu-item:hover { background: var(--cream); }
+
+  .eval-menu-item .item-icon { font-size: 20px; flex-shrink: 0; }
+
+  .eval-menu-item .item-desc {
+    font-size: 11px;
+    color: var(--gray);
+    margin-top: 2px;
+    font-weight: 300;
+  }
 
   .fab-icon { font-size: 18px; }
 
@@ -1249,9 +1303,13 @@
     <span class="fab-icon">📊</span>
     <span class="fab-label">RÉSULTATS</span>
   </button>
+  <button class="fab fab-eval" onclick="showEvalExportMenu()">
+    <span class="fab-icon">📋</span>
+    <span class="fab-label">ÉVALUATION PDF</span>
+  </button>
   <button class="fab fab-pdf" onclick="exportToPDF()" id="fabPdf" disabled title="Validez le QCM d'abord">
     <span class="fab-icon">📄</span>
-    <span class="fab-label">PDF</span>
+    <span class="fab-label">BULLETIN PDF</span>
   </button>
   <button class="fab fab-excel" onclick="exportToExcel()" id="fabExcel" disabled title="Validez le QCM d'abord">
     <span class="fab-icon">⬇</span>
@@ -1302,6 +1360,32 @@
       <div class="tab-panel" id="tab-stats">
         <div id="statsPanel" style="padding:28px;"></div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Eval Export Menu -->
+<div class="eval-menu" id="evalMenu">
+  <div class="eval-menu-header">📋 EXPORTER L'ÉVALUATION</div>
+  <div class="eval-menu-item" onclick="exportEvaluationPDF(false)">
+    <span class="item-icon">📝</span>
+    <div>
+      <div><strong>Feuille d'examen vierge</strong></div>
+      <div class="item-desc">Sans les bonnes réponses — à distribuer aux stagiaires</div>
+    </div>
+  </div>
+  <div class="eval-menu-item" onclick="exportEvaluationPDF(true)">
+    <span class="item-icon">✅</span>
+    <div>
+      <div><strong>Corrigé officiel</strong></div>
+      <div class="item-desc">Avec les bonnes réponses et explications</div>
+    </div>
+  </div>
+  <div class="eval-menu-item" onclick="exportEvaluationPDF('both')">
+    <span class="item-icon">📦</span>
+    <div>
+      <div><strong>Les deux en un PDF</strong></div>
+      <div class="item-desc">Examen vierge + corrigé (pages séparées)</div>
     </div>
   </div>
 </div>
@@ -2342,6 +2426,299 @@ function renderStatsPanel() {
     <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gray);margin:24px 0 12px;">🏆 Podium</div>
     ${podium}
   `;
+}
+
+// ── EVALUATION EXPORT MENU ──
+function showEvalExportMenu() {
+  const menu = document.getElementById('evalMenu');
+  menu.classList.toggle('open');
+}
+
+// Close eval menu when clicking outside
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('evalMenu');
+  const btn = e.target.closest('.fab-eval');
+  if (!btn && !e.target.closest('#evalMenu')) {
+    menu.classList.remove('open');
+  }
+});
+
+// ── EVALUATION PDF EXPORT ──
+function exportEvaluationPDF(mode) {
+  // mode: false = vierge, true = corrigé, 'both' = les deux
+  document.getElementById('evalMenu').classList.remove('open');
+  showToast('📋 Génération du PDF évaluation…', 2500);
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W = 210, H = 297;
+  const margin = 16;
+
+  function drawPageHeader(doc, title, subtitle, pageNum) {
+    // Dark header band
+    doc.setFillColor(26, 10, 5);
+    doc.rect(0, 0, W, 44, 'F');
+    // Red accent bar
+    doc.setFillColor(192, 57, 43);
+    doc.rect(0, 0, 5, 44, 'F');
+    // Purple stripe for corrigé
+    if (title.includes('CORRIG')) {
+      doc.setFillColor(91, 44, 111);
+      doc.rect(5, 0, 3, 44, 'F');
+    }
+
+    // Title
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.text(title, margin + 4, 17);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(140, 123, 116);
+    doc.text(subtitle, margin + 4, 25);
+    doc.text('Groupe DEVOWFS201  ·  Formateur : NASSIRI ILYAS  ·  Séance 15 — 07/04/2026', margin + 4, 32);
+
+    // Q count badge
+    doc.setFillColor(192, 57, 43);
+    doc.roundedRect(W - margin - 32, 10, 30, 12, 2, 2, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text('15 QUESTIONS', W - margin - 17, 18, { align: 'center' });
+  }
+
+  function drawStudentZone(doc, y) {
+    // Zone identité stagiaire
+    doc.setDrawColor(200, 180, 170);
+    doc.setFillColor(253, 246, 236);
+    doc.roundedRect(margin, y, W - margin * 2, 20, 2, 2, 'FD');
+
+    doc.setTextColor(61, 26, 16);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.text('NOM & PRÉNOM :', margin + 4, y + 7);
+    doc.setFont('helvetica', 'normal');
+    doc.setDrawColor(150, 120, 110);
+    doc.line(margin + 36, y + 8, margin + 120, y + 8);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('DATE :', margin + 126, y + 7);
+    doc.line(margin + 138, y + 8, W - margin - 2, y + 8);
+
+    doc.setFont('helvetica', 'normal');
+    doc.text('GROUPE : DEVOWFS201', margin + 4, y + 15);
+    doc.text('DURÉE : 20 MIN — BARÈME : 1 PT / QUESTION — TOTAL : /15', margin + 60, y + 15);
+    return y + 26;
+  }
+
+  function drawQuestion(doc, q, qi, y, showAnswer) {
+    const letters = ['A', 'B', 'C', 'D'];
+    const qH = 8 + q.options.length * 8 + (showAnswer ? 14 : 0);
+
+    // Check if we need a new page
+    if (y + qH > H - 18) {
+      doc.addPage();
+      drawContinuationHeader(doc, showAnswer);
+      y = 28;
+    }
+
+    // Question number circle
+    doc.setFillColor(192, 57, 43);
+    doc.circle(margin + 5, y + 4, 5, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text(String(qi + 1), margin + 5, y + 6, { align: 'center' });
+
+    // Category tag
+    doc.setFillColor(232, 213, 204);
+    doc.roundedRect(W - margin - 26, y, 24, 6, 2, 2, 'F');
+    doc.setTextColor(61, 26, 16);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6);
+    doc.text(q.category.toUpperCase(), W - margin - 14, y + 4.5, { align: 'center' });
+
+    // Question text
+    doc.setTextColor(26, 10, 5);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    const cleanQ = q.text.replace(/<[^>]+>/g, '');
+    const qLines = doc.splitTextToSize(cleanQ, W - margin * 2 - 22);
+    doc.text(qLines, margin + 13, y + 6);
+    y += Math.max(10, qLines.length * 5 + 2);
+
+    // Options
+    q.options.forEach((opt, oi) => {
+      const cleanOpt = opt.replace(/<[^>]+>/g, '');
+      const isCorrect = oi === q.answer;
+
+      if (showAnswer && isCorrect) {
+        // Highlight correct answer
+        doc.setFillColor(234, 247, 238);
+        doc.setDrawColor(30, 132, 73);
+        doc.roundedRect(margin + 4, y - 4, W - margin * 2 - 6, 8, 1.5, 1.5, 'FD');
+      }
+
+      // Option letter bubble
+      if (showAnswer && isCorrect) {
+        doc.setFillColor(30, 132, 73);
+      } else {
+        doc.setFillColor(showAnswer ? 240 : 255, showAnswer ? 230 : 255, showAnswer ? 225 : 255);
+        doc.setDrawColor(200, 180, 170);
+        doc.circle(margin + 11, y, 3.5, showAnswer ? 'F' : 'FD');
+      }
+      if (showAnswer && isCorrect) {
+        doc.circle(margin + 11, y, 3.5, 'F');
+      }
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      if (showAnswer && isCorrect) {
+        doc.setTextColor(255, 255, 255);
+      } else {
+        doc.setTextColor(61, 26, 16);
+      }
+      doc.text(letters[oi], margin + 11, y + 1.2, { align: 'center' });
+
+      // Option text
+      doc.setFont('helvetica', showAnswer && isCorrect ? 'bold' : 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(showAnswer && isCorrect ? [30, 132, 73] : 26, showAnswer && isCorrect ? undefined : 10, showAnswer && isCorrect ? undefined : 5);
+      if (showAnswer && isCorrect) doc.setTextColor(30, 132, 73);
+      else doc.setTextColor(26, 10, 5);
+      const optLines = doc.splitTextToSize(cleanOpt, W - margin * 2 - 26);
+      doc.text(optLines, margin + 18, y + 1.2);
+      y += Math.max(8, optLines.length * 5 + 2);
+    });
+
+    // Explanation (corrigé only)
+    if (showAnswer && q.explanation) {
+      const cleanExp = q.explanation.replace(/<[^>]+>/g, '');
+      doc.setFillColor(245, 250, 247);
+      doc.setDrawColor(30, 132, 73);
+      doc.roundedRect(margin + 4, y, W - margin * 2 - 6, 10, 1.5, 1.5, 'FD');
+      doc.setTextColor(30, 132, 73);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7);
+      doc.text('EXPLICATION :', margin + 8, y + 4);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(61, 26, 16);
+      const expLines = doc.splitTextToSize(cleanExp, W - margin * 2 - 40);
+      doc.text(expLines, margin + 30, y + 4);
+      y += 12;
+    }
+
+    // Separator
+    doc.setDrawColor(232, 213, 204);
+    doc.line(margin, y + 1, W - margin, y + 1);
+    y += 6;
+
+    return y;
+  }
+
+  function drawContinuationHeader(doc, showAnswer) {
+    doc.setFillColor(26, 10, 5);
+    doc.rect(0, 0, W, 16, 'F');
+    doc.setFillColor(192, 57, 43);
+    doc.rect(0, 0, 4, 16, 'F');
+    if (showAnswer) { doc.setFillColor(91, 44, 111); doc.rect(4, 0, 3, 16, 'F'); }
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    const label = showAnswer ? 'QCM Contrôleurs Laravel — CORRIGÉ (suite)' : 'QCM Contrôleurs Laravel — ÉVALUATION (suite)';
+    doc.text(label, 10, 10);
+  }
+
+  function drawFooter(doc, totalPages) {
+    for (let p = 1; p <= totalPages; p++) {
+      doc.setPage(p);
+      doc.setFillColor(26, 10, 5);
+      doc.rect(0, H - 10, W, 10, 'F');
+      doc.setTextColor(140, 123, 116);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(6.5);
+      doc.text('QCM Contrôleurs Laravel · DEVOWFS201 · Formateur : NASSIRI ILYAS', margin, H - 4);
+      doc.text(`Page ${p} / ${totalPages}`, W - margin, H - 4, { align: 'right' });
+    }
+  }
+
+  function buildEvalPages(doc, showAnswer, startFresh) {
+    if (!startFresh) {
+      doc.addPage();
+    }
+    const title = showAnswer ? 'QCM CONTRÔLEURS LARAVEL — CORRIGÉ' : 'QCM CONTRÔLEURS LARAVEL — ÉVALUATION';
+    const subtitle = showAnswer
+      ? 'Correction officielle · Framework PHP · Séance 15'
+      : 'Évaluation formative · Framework PHP · Séance 15';
+    drawPageHeader(doc, title, subtitle);
+
+    let y = showAnswer ? 52 : 52;
+    if (!showAnswer) {
+      y = drawStudentZone(doc, 48);
+    } else {
+      y = 50;
+    }
+
+    questions.forEach((q, qi) => {
+      y = drawQuestion(doc, q, qi, y, showAnswer);
+    });
+
+    // Summary box at end (corrigé)
+    if (showAnswer) {
+      if (y + 30 > H - 18) { doc.addPage(); drawContinuationHeader(doc, true); y = 28; }
+      doc.setFillColor(26, 10, 5);
+      doc.roundedRect(margin, y, W - margin * 2, 26, 3, 3, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.text('TABLEAU DE CORRECTION', W / 2, y + 8, { align: 'center' });
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(140, 123, 116);
+      const correct = questions.map(q => q.answer);
+      const answerStr = correct.map((a, i) => `Q${i+1}:${['A','B','C','D'][a]}`).join('  ');
+      doc.text(answerStr, W / 2, y + 17, { align: 'center' });
+      doc.setTextColor(46, 204, 113);
+      doc.setFontSize(7);
+      doc.text('Barème : 1 point par bonne réponse · Total : 15 points', W / 2, y + 23, { align: 'center' });
+    }
+
+    // Scoring grid at bottom (vierge)
+    if (!showAnswer) {
+      if (y + 20 > H - 18) { doc.addPage(); drawContinuationHeader(doc, false); y = 28; }
+      doc.setFillColor(253, 246, 236);
+      doc.setDrawColor(200, 180, 170);
+      doc.roundedRect(margin, y, W - margin * 2, 16, 2, 2, 'FD');
+      doc.setTextColor(61, 26, 16);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.text('RÉSULTAT :', margin + 6, y + 6);
+      doc.line(margin + 28, y + 7, margin + 70, y + 7);
+      doc.text('/ 15', margin + 72, y + 6);
+      doc.text('POURCENTAGE :', margin + 90, y + 6);
+      doc.line(margin + 116, y + 7, margin + 150, y + 7);
+      doc.text('%', margin + 152, y + 6);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(140, 123, 116);
+      doc.text('Barème : 1 point par bonne réponse · Durée : 20 minutes · Documents non autorisés', margin + 6, y + 13);
+    }
+  }
+
+  // Build PDF based on mode
+  if (mode === 'both') {
+    buildEvalPages(doc, false, true);  // vierge first
+    buildEvalPages(doc, true, false);  // then corrigé
+  } else {
+    buildEvalPages(doc, mode === true, true);
+  }
+
+  drawFooter(doc, doc.internal.getNumberOfPages());
+
+  const modeStr = mode === 'both' ? 'Complet' : (mode ? 'Corrige' : 'Vierge');
+  doc.save(`Evaluation_QCM_Laravel_${modeStr}_${new Date().toISOString().slice(0,10)}.pdf`);
+  showToast(`✅ PDF "${mode === 'both' ? 'Évaluation complète' : mode ? 'Corrigé' : 'Examen vierge'}" téléchargé !`);
 }
 
 renderQuiz();
